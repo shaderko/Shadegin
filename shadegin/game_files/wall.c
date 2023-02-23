@@ -5,8 +5,28 @@
 #include "wall.h"
 #include "../src/engine/global.h"
 
+/*
+ * dont use, this function doesn't initialize segments, or render
+*/
 Wall create_wall(float x, float y, float width, float height) {
-    Wall w = {{x + width / 2, y + height / 2}, {width, height}};
+    vec2* segments = malloc(sizeof(vec2) * 2 * 4);
+
+    vec2 right_top = {x + width, y + height};
+    vec2 right_bottom = {x + width, y};
+    vec2 left_top = {x, y + height};
+    vec2 left_bottom = {x, y};
+
+    vec2* points_array[] = {&left_top, &right_top, &right_bottom, &left_bottom};
+    for (int x = 0; x < 4; x++)
+    {
+        vec2 *first_segment = points_array[x];
+        vec2 *second_segment = points_array[(x + 1) % 4];
+
+        memcpy(segments + (x * 2), first_segment, sizeof(vec2));
+        memcpy(segments + ((x * 2) + 1), second_segment, sizeof(vec2));
+    }
+
+    Wall w = {{x + width / 2, y + height / 2}, {width, height}, segments, true, NULL, 0};
     return w;
 }
 
@@ -18,25 +38,11 @@ Wall create_wall(float x, float y, float width, float height) {
  * returns: pointer to array of arrays of vector 2 elements which specify segments
 */
 vec2* segments(Wall* walls, int size) {
+    // size + 1 is there because at the end, we add walls of window
     vec2* wall_segments = malloc((size + 1) * sizeof(vec2) * 2 * 4);
 
     for (int i = 0; i < size; i++) {
-        Wall wall = walls[i];
-
-        vec2 left_bottom = {wall.position[0] - wall.size[0] / 2, wall.position[1] - wall.size[1] / 2};
-        vec2 right_top = {wall.position[0] + wall.size[0] / 2, wall.position[1] + wall.size[1] / 2};
-        vec2 right_bottom = {wall.position[0] + wall.size[0] / 2, wall.position[1] - wall.size[1] / 2};
-        vec2 left_top = {wall.position[0] - wall.size[0] / 2, wall.position[1] + wall.size[1] / 2};
-
-        vec2* points_array[] = {left_top, right_top, right_bottom, left_bottom};
-
-        for (int x = 0; x < 4; x++) {
-            vec2* first_segment = points_array[x];
-            vec2* second_segment = points_array[(x + 1) % 4];
-
-            memcpy(wall_segments + (i * 4 * 2) + (x * 2), first_segment, sizeof(vec2));
-            memcpy(wall_segments + (i * 4 * 2) + ((x * 2) + 1), second_segment, sizeof(vec2));
-        }
+        memcpy(wall_segments + (i * 2 * 4), walls[i].segments, sizeof(vec2) * 2 * 4);
     }
 
     // add segments of the end of screen
@@ -45,7 +51,7 @@ vec2* segments(Wall* walls, int size) {
     vec2 right_bottom = {global.render.width, 0};
     vec2 left_bottom = {0, 0};
 
-    vec2* points_array[] = {left_top, right_top, right_bottom, left_bottom};
+    vec2* points_array[] = {&left_top, &right_top, &right_bottom, &left_bottom};
 
     for (int x = 0; x < 4; x++) {
         vec2* first_segment = points_array[x];
@@ -58,9 +64,27 @@ vec2* segments(Wall* walls, int size) {
     return wall_segments;
 }
 
-Wall random_wall() {
+Wall random_wall(float width, float height) {
     float x = ((float)rand()/(float)(RAND_MAX)) * global.render.width;
     float y = ((float)rand()/(float)(RAND_MAX)) * global.render.height;
-    Wall w = {{x + 20 / 2, y + 20 / 2}, {20, 20}};
+
+    vec2* segments = malloc(sizeof(vec2) * 2 * 4);
+
+    vec2 right_top = {x + width, y + height};
+    vec2 right_bottom = {x + width, y};
+    vec2 left_top = {x, y + height};
+    vec2 left_bottom = {x, y};
+
+    vec2* points_array[] = {&left_top, &right_top, &right_bottom, &left_bottom};
+    for (int x = 0; x < 4; x++)
+    {
+        vec2 *first_segment = points_array[x];
+        vec2 *second_segment = points_array[(x + 1) % 4];
+
+        memcpy(segments + (x * 2), first_segment, sizeof(vec2));
+        memcpy(segments + ((x * 2) + 1), second_segment, sizeof(vec2));
+    }
+
+    Wall w = {{x + width / 2, y + height / 2}, {width, height}, segments, true, NULL, 0};
     return w;
 }
