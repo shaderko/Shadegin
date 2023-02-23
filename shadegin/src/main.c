@@ -15,13 +15,14 @@ int main(int argc, char *argv[]) {
 
     bool running = true;
 
-    int walls_size = 50;
+    int walls_size = 100;
     Wall* walls = malloc(sizeof(Wall) * walls_size);
     for (int i = 0; i < walls_size; i++) {
-        walls[i] = random_wall();
+        walls[i] = random_wall(10, 10);
     }
-    vec2* rays_array = segments(walls, walls_size);
+    // Wall screen_wall = create_wall(0, 0, global.render.width, global.render.height);
     size_t segments_size = ((walls_size) + 1);
+    vec2 *segments_array = segments(walls, walls_size);
 
 
     while (running) {
@@ -39,24 +40,23 @@ int main(int argc, char *argv[]) {
 
         render_begin();
 
-        vec2* rays = malloc(0);
-        size_t rays_size = 0;
-
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-
-        for (int i = 0; i < ((walls_size) + 1) * 4; i++) {
-            rays = cast_rays(rays, &rays_size, (vec2){mouseX, global.render.height - mouseY}, (vec2){rays_array[i * 2][0], rays_array[i * 2][1]}, rays_array, segments_size);
+        for (int i = 0; i < (walls_size); i++) {
+            cast_rays(walls, walls_size, (vec2){mouseX, global.render.height - mouseY}, i, segments_array, segments_size);
         }
-        sort_rays(rays, rays_size, (vec2){mouseX, global.render.height - mouseY});
-        draw_rays(rays, rays_size, mouseX, global.render.height - mouseY);
-
         for (int i = 0; i < walls_size; i++) {
-            render_quad(walls[i].position, walls[i].size, (vec4){1, 1, 1, 1}, false);
+            if (walls[i].render) {
+                render_quad(walls[i].position, walls[i].size, (vec4){1, 1, 1, 1}, true);
+            }
         }
+        
+        draw_rays(walls, walls_size, mouseX, global.render.height - mouseY);
 
         render_end();
     }
+    
+    free(segments_array);
 
     return 0;
 }

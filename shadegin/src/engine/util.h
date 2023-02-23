@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <stdlib.h>
 #include <stdio.h>
 
 #define ERROR_EXIT(...) fprintf(stderr, __VA_ARGS__); exit(1)

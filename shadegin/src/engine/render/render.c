@@ -84,10 +84,10 @@ void render_poly(vec2 *vertices, size_t num_vertices, vec4 color) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * (num_vertices - 1) * sizeof(u32), indices, GL_STATIC_DRAW);
 
     mat4x4 model = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
     };
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
@@ -108,18 +108,18 @@ void render_line(vec2 src_pos, vec2 dst_pos, vec4 color) {
     glUseProgram(state.shader_default);
 
     vec3 vertices[] = {
-        src_pos[0], src_pos[1], 0,
-        dst_pos[0], dst_pos[1], 0
+        {src_pos[0], src_pos[1], 0},
+        {dst_pos[0], dst_pos[1], 0}
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, state.vbo_line);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     mat4x4 model = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
     };
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
