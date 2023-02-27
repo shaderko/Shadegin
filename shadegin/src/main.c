@@ -15,10 +15,10 @@ int main(int argc, char *argv[]) {
 
     bool running = true;
 
-    int walls_size = 100;
+    int walls_size = 50;
     Wall* walls = malloc(sizeof(Wall) * walls_size);
     for (int i = 0; i < walls_size; i++) {
-        walls[i] = random_wall(10, 10);
+        walls[i] = random_wall(30, 30);
     }
     // Wall screen_wall = create_wall(0, 0, global.render.width, global.render.height);
     size_t segments_size = ((walls_size) + 1);
@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
         render_end();
     }
     
+    free(walls);
     free(segments_array);
 
     return 0;
