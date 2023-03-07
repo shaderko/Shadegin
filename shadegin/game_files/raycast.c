@@ -185,8 +185,6 @@ vec2* intersection(float r_px, float r_py, float r_dx, float r_dy, vec2* segment
     vec2* closest_intersect = NULL;
     float closest_distance = FLT_MAX;
 
-    float r_mag_sq = r_dx * r_dx + r_dy * r_dy;
-
     for (vec2* segment = segments; segment < segments + segment_size*2; segment += 2) {
         float segment_src_x = segment[0][0];
         float segment_src_y = segment[0][1];
@@ -195,9 +193,6 @@ vec2* intersection(float r_px, float r_py, float r_dx, float r_dy, vec2* segment
 
         float s_dx = segment_dst_x - segment_src_x;
         float s_dy = segment_dst_y - segment_src_y;
-
-        float rs_mag_sq = s_dx * s_dx + s_dy * s_dy;
-        float rs_mag = sqrtf(rs_mag_sq);
 
         if (r_dx * s_dy == r_dy * s_dx) {
             // lines are parallel
