@@ -64,6 +64,28 @@ vec2* segments(Wall* walls, int size) {
     return wall_segments;
 }
 
+Wall* create_random_walls(int size, float width, float height) {
+    Wall* walls = malloc(sizeof(Wall) * size);
+
+    for (int i = 0; i < size; i++) {
+        walls[i] = random_wall(width, height);
+    }
+
+    return walls;
+}
+
+Wall* update_walls(Wall* walls, int* size, Wall* new_walls, int new_walls_size) {
+    walls = realloc(walls, sizeof(Wall) * ((*size) + new_walls_size));
+
+    for (int i = 0; i < new_walls_size; i++) {
+        walls[i + (*size)] = new_walls[i];
+    }
+
+    *size += new_walls_size;
+
+    return walls;
+}
+
 Wall random_wall(float width, float height) {
     float x = ((float)rand()/(float)(RAND_MAX)) * global.render.width;
     float y = ((float)rand()/(float)(RAND_MAX)) * global.render.height;
