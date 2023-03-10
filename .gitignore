@@ -1,7 +1,13 @@
 /.vscode
 
+.DS_Store
+
 # build files
 .\*.ilk
 .\*.obj
 .\*.pdb
 .\*.exe
+
+.\shadegin\mygame
+.\shadegin\mygame.dSYM
+.\include\SDL2
