@@ -1,5 +1,4 @@
-#ifndef WALL_H
-#define WALL_H
+#pragma once
 
 #include <linmath.h>
 #include <stdbool.h>
@@ -14,9 +13,9 @@ typedef struct wall {
 } Wall;
 
 Wall* create_random_walls(int size, float width, float height);
+Wall random_wall(float width, float height);
 Wall* update_walls(Wall* walls, int* size, Wall* new_walls, int new_walls_size);
 Wall create_wall(float x, float y, float width, float height);
 vec2* segments(Wall* walls, int size);
 Wall random_wall(float width, float height);
-
-#endif
+void draw_walls(Wall* walls, size_t walls_size);

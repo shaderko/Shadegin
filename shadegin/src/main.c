@@ -6,20 +6,20 @@
 
 #include "engine/global.h"
 #include "engine/types.h"
+#include "engine/threading/thread_pool.h"
 
 #include "../game_files/wall.h"
 #include "../game_files/raycast.h"
 
 int main(int argc, char *argv[]) {
     render_init();
+    thread_pool_init(8, 1000);
 
     bool running = true;
 
-    int walls_size = 100;
+    int walls_size = 50;
     Wall* walls = create_random_walls(walls_size, 10, 10);
 
-    // Create segments for walls(squares) each segment consists of four walls (vec2, vec2)
-    // size_t segments_size = ((walls_size) + 1);
     vec2 *segments_array = segments(walls, walls_size);
 
     while (running) {
@@ -39,24 +39,35 @@ int main(int argc, char *argv[]) {
 
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-        // mouseY = global.render.height - mouseY;
+        mouseY = global.render.height - mouseY;
 
         for (int i = 0; i < (walls_size); i++) {
-            cast_rays(walls, walls_size, (vec2){mouseX, mouseY}, i, segments_array, walls_size + 1);
+            CastRaysArguments* args = (CastRaysArguments*)malloc(sizeof(CastRaysArguments));
+            args->walls = walls;
+            args->walls_size = walls_size;
+            args->src_pos_x = mouseX;
+            args->src_pos_y = mouseY;
+            args->index = i;
+            args->segments = segments_array;
+            args->size = walls_size + 1;
+            Task task = {
+                .function = cast_rays,
+                .args = args,
+                .completed = 0
+            };
+            add_task(task);
         }
-        for (int i = 0; i < walls_size; i++) {
-            if (walls[i].render) {
-                render_quad(walls[i].position, walls[i].size, (vec4){1, 1, 1, 1}, true);
-            }
-        }
-        
+        finished();
         draw_rays(walls, walls_size, mouseX, mouseY);
+        draw_walls(walls, walls_size);
 
         render_end();
     }
     
     free(walls);
     free(segments_array);
+
+    thread_pool_cleanup();
 
     return 0;
 }

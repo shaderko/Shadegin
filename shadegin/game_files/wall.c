@@ -30,6 +30,7 @@ Wall create_wall(float x, float y, float width, float height) {
     return w;
 }
 
+
 /* 
  * walls: takes all the walls to make into segments
  * 
@@ -109,4 +110,12 @@ Wall random_wall(float width, float height) {
 
     Wall w = {{x + width / 2, y + height / 2}, {width, height}, segments, true, NULL, 0};
     return w;
+}
+
+void draw_walls(Wall* walls, size_t walls_size) {
+    for (int i = 0; i < walls_size; i++) {
+            if (walls[i].render) {
+                render_quad(walls[i].position, walls[i].size, (vec4){1, 1, 1, 1}, true);
+            }
+        }
 }

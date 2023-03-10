@@ -12,10 +12,13 @@
 
 #define radians(a) (a * 180.0 / M_PI)
 
-Raycast raycast_init(float fov, vec3 color) {
-    Raycast raycast = {fov, {255, 255, 255}};
-    return raycast;
+
+Raycast raycast_init(vec2 src_pos, vec2 dst_pos, vec2 hit) {
+    double angle = atan2(hit[1] - src_pos[1], hit[0] - src_pos[0]);
+    Raycast ray = {{*src_pos, *dst_pos}, {*hit, angle}};
+    return ray;
 }
+
 
 void sort_rays(vec2* rays, size_t rays_size, vec2 src_pos) {
     vec2* temp = malloc(sizeof(vec2));
@@ -45,17 +48,36 @@ bool is_angle_within_range(double higher_angle, double lower_angle, double angle
 }
 
 
-int cast_rays(Wall* walls, size_t walls_size, vec2 src_pos, int index, vec2* segments, size_t size) {
+Raycast cast_ray(vec2 src_pos, vec2 dst_pos, vec2* segments, size_t segments_size, double angle_offset) {
+    float src_pos_x = src_pos[0];
+    float src_pos_y = src_pos[1];
+
+    float dst_pos_x = dst_pos[0];
+    float dst_pos_y = dst_pos[1];
+
+    vec2* hit = intersection(src_pos_x, src_pos_y, dst_pos_x - src_pos_x + angle_offset, dst_pos_y - src_pos_y + angle_offset, segments, segments_size);
+    Raycast ray = raycast_init(src_pos, dst_pos, *hit);
+    return ray;
+}
+
+
+void cast_rays(void* args) {
+    CastRaysArguments* cast_rays_args = (CastRaysArguments*)args;
+    Wall* walls = cast_rays_args->walls;
+    int walls_size = cast_rays_args->walls_size;
+    int src_pos_x = cast_rays_args->src_pos_x;
+    int src_pos_y = cast_rays_args->src_pos_y;
+    int index = cast_rays_args->index;
+    vec2* segments = cast_rays_args->segments;
+    int size = cast_rays_args->size;
+
     if (!walls[index].render) {
-        return 0;
+        return;
     }
     size_t segments_size = size * 4;
 
     size_t rays_size = 0;
     vec2* rays = malloc(0);
-
-    float src_pos_x = src_pos[0];
-    float src_pos_y = src_pos[1];
 
     double higher_hit;
     double lower_hit;
@@ -71,7 +93,7 @@ int cast_rays(Wall* walls, size_t walls_size, vec2 src_pos, int index, vec2* seg
         vec2* higher = intersection(src_pos_x, src_pos_y, dst_pos_x - src_pos_x + radians(0.001), dst_pos_y - src_pos_y + radians(0.001), segments, segments_size);
 
         if (lower != NULL) {
-            double lower_angle = atan2(lower[0][1] - src_pos[1], lower[0][0] - src_pos[0]);
+            double lower_angle = atan2(lower[0][1] - src_pos_y, lower[0][0] - src_pos_x);
             if (!lower_hit_check || lower_hit > lower_angle) {
                 lower_hit_check = true;
                 lower_hit = lower_angle;
@@ -94,7 +116,7 @@ int cast_rays(Wall* walls, size_t walls_size, vec2 src_pos, int index, vec2* seg
             rays_size++;
         }
         if (higher != NULL) {
-            double higher_angle = atan2(higher[0][1] - src_pos[1], higher[0][0] - src_pos[0]);
+            double higher_angle = atan2(higher[0][1] - src_pos_y, higher[0][0] - src_pos_x);
             if (!higher_hit_check || higher_hit < higher_angle) {
                 higher_hit_check = true;
                 higher_hit = higher_angle;
@@ -120,7 +142,7 @@ int cast_rays(Wall* walls, size_t walls_size, vec2 src_pos, int index, vec2* seg
             vec2* wall_segment = walls[i].segments;
             bool is_outside = false;
             for (int x = 0; x < 4; x++) {
-                double angle = atan2(wall_segment[x * 2][1] - src_pos[1], wall_segment[x * 2][0] - src_pos[0]);
+                double angle = atan2(wall_segment[x * 2][1] - src_pos_y, wall_segment[x * 2][0] - src_pos_x);
 
                 if (is_angle_within_range(higher_hit, lower_hit, angle)) {
                     is_outside = true;
@@ -138,7 +160,7 @@ int cast_rays(Wall* walls, size_t walls_size, vec2 src_pos, int index, vec2* seg
     walls[index].rays = rays;
     walls[index].rays_size = rays_size;
 
-    return 0;
+    return;
 }
 
 void draw_rays(Wall* walls, size_t size, float src_x, float src_y) {
