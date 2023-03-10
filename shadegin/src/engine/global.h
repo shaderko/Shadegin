@@ -1,5 +1,4 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#pragma once
 
 #include "render/render.h"
 
@@ -8,5 +7,3 @@ typedef struct global {
 } Global;
 
 extern Global global;
-
-#endif

@@ -30,6 +30,7 @@ Wall create_wall(float x, float y, float width, float height) {
     return w;
 }
 
+
 /* 
  * walls: takes all walls to make into segments
  * 
@@ -91,4 +92,12 @@ Wall* update_walls(Wall* walls, int* size, Wall* new_walls, int new_walls_size) 
     *size += new_walls_size;
 
     return walls;
+}
+
+void draw_walls(Wall* walls, size_t walls_size) {
+    for (int i = 0; i < walls_size; i++) {
+            if (walls[i].render) {
+                render_quad(walls[i].position, walls[i].size, (vec4){1, 1, 1, 1}, true);
+            }
+        }
 }

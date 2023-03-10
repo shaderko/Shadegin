@@ -1,5 +1,4 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#pragma once
 
 #include <linmath.h>
 
@@ -10,5 +9,3 @@ typedef struct player {
 
 void move(Player* player);
 void update_player_position(Player* player, vec2 velocity);
-
-#endif
