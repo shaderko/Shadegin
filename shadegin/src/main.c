@@ -15,11 +15,9 @@ int main(int argc, char *argv[]) {
 
     bool running = true;
 
-    int walls_size = 100;
+    int walls_size = 3000;
     Wall* walls = create_random_walls(walls_size, 10, 10);
 
-    // Create segments for walls(squares) each segment consists of four walls (vec2, vec2)
-    // size_t segments_size = ((walls_size) + 1);
     vec2 *segments_array = segments(walls, walls_size);
 
     while (running) {
@@ -39,7 +37,7 @@ int main(int argc, char *argv[]) {
 
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-        // mouseY = global.render.height - mouseY;
+        mouseY = global.render.height - mouseY;
 
         for (int i = 0; i < (walls_size); i++) {
             cast_rays(walls, walls_size, (vec2){mouseX, mouseY}, i, segments_array, walls_size + 1);
