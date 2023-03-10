@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     bool running = true;
 
-    int walls_size = 50;
+    int walls_size = 3000;
     Wall* walls = create_random_walls(walls_size, 10, 10);
 
     vec2 *segments_array = segments(walls, walls_size);
