@@ -34,9 +34,9 @@ Task get_task() {
     return task;
 }
 
-Thread* get_self(pthread_t thread_id) {
+Thread* get_self(int thread_id) {
     for (int i = 0; i < thread_pool.num_workers; i++) {
-        if (thread_id == thread_pool.threads[i].id) {
+        if (thread_id == thread_pool.threads[i].id_int) {
             return &thread_pool.threads[i];
         }
     }
@@ -44,18 +44,20 @@ Thread* get_self(pthread_t thread_id) {
 }
 
 void* worker(void* arg) {
-    pthread_t thread_id = pthread_self();
+    int thread_id = (int) arg;
     Thread* thread = get_self(thread_id);
     if (thread == NULL) {
-        printf("worker not found!\n");
+        printf("worker %i not found!\n", thread_id);
         return NULL;
     }
     while (1) {
         pthread_mutex_lock(&thread_pool.mutex);
         while (thread_pool.queue.size <= 0 && !thread_pool.should_exit) {
+            // printf("worker %i is waiting for task\n", thread_id);
             thread->waiting = 1;
             pthread_cond_wait(&thread_pool.cond, &thread_pool.mutex);
         }
+        // printf("worker %i is processing task\n", thread_id);
         thread->waiting = 0;
         if (thread_pool.should_exit) {
             pthread_mutex_unlock(&thread_pool.mutex);
@@ -88,21 +90,22 @@ void thread_pool_init(int workers, int capacity) {
         printf("\n cond init failed\n");
     }
 
-    for (long i = 0; i < thread_pool.num_workers; i++) {
+    for (int i = 0; i < thread_pool.num_workers; i++) {
+        thread_pool.threads[i].id_int = i;
         pthread_create(&thread_pool.threads[i].id, NULL, worker, (void*)i);
     }
 }
 
-void sleep(int ms)
-{
-    struct timespec waittime;
+// void sleep(int ms)
+// {
+//     struct timespec waittime;
 
-    waittime.tv_sec = (ms / 1000);
-    ms = ms % 1000;
-    waittime.tv_nsec = ms * 1000 * 1000;
+//     waittime.tv_sec = (ms / 1000);
+//     ms = ms % 1000;
+//     waittime.tv_nsec = ms * 1000 * 1000;
 
-    nanosleep(&waittime, NULL);
-}
+//     nanosleep(&waittime, NULL);
+// }
 
 void await_workers() {
     pthread_cond_broadcast(&thread_pool.cond);
@@ -115,7 +118,7 @@ void await_workers() {
     if (free_workers == thread_pool.num_workers) {
         return;
     }
-    sleep(1);
+    nanosleep(1);
     await_workers();
 }
 
@@ -126,14 +129,14 @@ void wait_free_worker() {
             return;
         }
     }
-    sleep(1);
+    nanosleep(1);
     wait_free_worker();
     return;
 }
 
 void finished() {
     while (thread_pool.queue.size != 0) {
-        sleep(1);
+        nanosleep(1);
     }
     await_workers();
     return;

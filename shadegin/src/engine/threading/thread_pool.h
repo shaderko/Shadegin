@@ -1,5 +1,6 @@
 #pragma once
 
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,6 +22,7 @@ typedef struct {
 
 typedef struct {
     pthread_t id;
+    int id_int;
     int waiting;
 } Thread;
 
