@@ -96,16 +96,16 @@ void thread_pool_init(int workers, int capacity) {
     }
 }
 
-// void sleep(int ms)
-// {
-//     struct timespec waittime;
+void sleep(int ms)
+{
+    struct timespec waittime;
 
-//     waittime.tv_sec = (ms / 1000);
-//     ms = ms % 1000;
-//     waittime.tv_nsec = ms * 1000 * 1000;
+    waittime.tv_sec = (ms / 1000);
+    ms = ms % 1000;
+    waittime.tv_nsec = ms * 1000 * 1000;
 
-//     nanosleep(&waittime, NULL);
-// }
+    nanosleep(&waittime, NULL);
+}
 
 void await_workers() {
     pthread_cond_broadcast(&thread_pool.cond);
@@ -118,7 +118,7 @@ void await_workers() {
     if (free_workers == thread_pool.num_workers) {
         return;
     }
-    nanosleep(1);
+    sleep(1);
     await_workers();
 }
 
@@ -129,14 +129,14 @@ void wait_free_worker() {
             return;
         }
     }
-    nanosleep(1);
+    sleep(1);
     wait_free_worker();
     return;
 }
 
 void finished() {
     while (thread_pool.queue.size != 0) {
-        nanosleep(1);
+        sleep(1);
     }
     await_workers();
     return;
