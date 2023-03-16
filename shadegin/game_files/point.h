@@ -7,9 +7,15 @@
 
 typedef struct Point Point;
 
-typedef struct PointRelation {
+typedef struct {
     Point* point;
-    float initialDistance;
+} SimArgs;
+
+typedef struct PointRelation {
+    Point** points;
+    int point_size;
+    Point** exists;
+    int exist_size;
 } PointRelation;
 
 struct Point {
@@ -19,7 +25,6 @@ struct Point {
     vec2 gravitationalForce;
     float mass;
     PointRelation* connections;
-    int connectionsSize;
 };
 
 Point create_point(float x, float y, float forceCapVertical, float forceCapHorizontal, float gravVertical, float gravHotizontal, float weight);
@@ -27,5 +32,5 @@ void draw_point(Point* point);
 void draw_connection(Point* point);
 void add_connection(Point* point, Point* connection);
 Point** create_grid(int width, int height, int x, int y, int offset);
-void simulate_gravity(Point** points, int width, int height);
+void simulate_gravity(void*);
 void move(Point* point);
