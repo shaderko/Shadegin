@@ -14,16 +14,17 @@
 int main(int argc, char *argv[]) {
     render_init();
 
-    thread_pool_init(8, 5000);
+    thread_pool_init(200, 5000);
 
-    int grid_width = 30;
-    int grid_height = 30;
-    int grid_offest = 30;
+    int grid_width = 5;
+    int grid_height = 13;
+    int grid_offest = 15;
 
     Point** pointer_array = create_grid(grid_width, grid_height, global.render.width / 2 - (grid_width * grid_offest) / 2, global.render.height - 50, grid_offest);
 
     bool running = true;
     bool mouse_down = false;
+    bool explosion = false;
     Point* mouse_point = NULL;
 
     while (running) {
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
                 }
                 mouse_point = NULL;
                 mouse_down = !mouse_down;
+                explosion = false;
             default:
                 break;
             }
@@ -67,7 +69,14 @@ int main(int argc, char *argv[]) {
         }
         finished();
 
-        if (mouse_down && mouse_point == NULL) {
+        // for (int pos_y = 0; pos_y < grid_height; pos_y++) {
+        //     for (int pos_x = 0; pos_x < grid_width; pos_x++) {
+        //         simulate_wind((vec2){}));
+        //     }
+        // }
+
+        if (mouse_down && mouse_point == NULL && !explosion) {
+            explosion = true;
             for (int y = 0; y < grid_height; y++) {
                 for (int x = 0; x < grid_width; x++) {
                     // for (int z = 0; z < pointer_array[y][x].connections->point_size; x++) {
@@ -75,6 +84,7 @@ int main(int argc, char *argv[]) {
                     //         mouse_point = &pointer_array[y][x];
                     //     }
                     // }
+                    simulate_wind((vec2){mouseX, mouseY}, 100, 10, &pointer_array[y][x]);
                     if (mouseX >= pointer_array[y][x].position[0] && mouseX <= pointer_array[y][x].position[0] + 10 && mouseY >= pointer_array[y][x].position[1] && mouseY <= pointer_array[y][x].position[1] + 10) {
                         mouse_point = &pointer_array[y][x];
                     }
