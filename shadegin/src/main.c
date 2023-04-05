@@ -8,24 +8,19 @@
 #include "engine/types.h"
 #include "engine/threading/thread_pool.h"
 
-#include "../game_files/point.h"
-
+#include "../game_files/wall.h"
+#include "../game_files/raycast.h"
 
 int main(int argc, char *argv[]) {
     render_init();
-
-    thread_pool_init(200, 5000);
-
-    int grid_width = 5;
-    int grid_height = 13;
-    int grid_offest = 15;
-
-    Point** pointer_array = create_grid(grid_width, grid_height, global.render.width / 2 - (grid_width * grid_offest) / 2, global.render.height - 50, grid_offest);
+    thread_pool_init(8, 50);
 
     bool running = true;
-    bool mouse_down = false;
-    bool explosion = false;
-    Point* mouse_point = NULL;
+
+    int walls_size = 10;
+    Wall* walls = create_random_walls(walls_size, 10, 10);
+
+    vec2 *segments_array = segments(walls, walls_size);
 
     while (running) {
         SDL_Event event;
@@ -35,15 +30,6 @@ int main(int argc, char *argv[]) {
             case SDL_QUIT:
                 running = false;
                 break;
-            case SDL_MOUSEBUTTONDOWN:
-                printf("MOUSE DOWN %i\n", !mouse_down);
-                if (mouse_point != NULL) {
-                    mouse_point->velocity[0] = 0;
-                    mouse_point->velocity[1] = 0;
-                }
-                mouse_point = NULL;
-                mouse_down = !mouse_down;
-                explosion = false;
             default:
                 break;
             }
@@ -55,60 +41,31 @@ int main(int argc, char *argv[]) {
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
 
-        for (int pos_y = 0; pos_y < grid_height; pos_y++) {
-            for (int pos_x = 0; pos_x < grid_width; pos_x++) {
-                SimArgs* args = (SimArgs*)malloc(sizeof(SimArgs));
-                args->point = &pointer_array[pos_y][pos_x];
-                Task task = {
-                    .function = simulate_gravity,
-                    .args = args,
-                    .completed = 0
-                };
-                add_task(task);
-            }
+        for (int i = 0; i < (walls_size); i++) {
+            CastRaysArguments* args = (CastRaysArguments*)malloc(sizeof(CastRaysArguments));
+            args->walls = walls;
+            args->walls_size = walls_size;
+            args->src_pos_x = mouseX;
+            args->src_pos_y = mouseY;
+            args->index = i;
+            args->segments = segments_array;
+            args->size = walls_size + 1;
+            Task task = {
+                .function = cast_rays,
+                .args = args,
+                .completed = 0
+            };
+            add_task(task);
         }
         finished();
-
-        // for (int pos_y = 0; pos_y < grid_height; pos_y++) {
-        //     for (int pos_x = 0; pos_x < grid_width; pos_x++) {
-        //         simulate_wind((vec2){}));
-        //     }
-        // }
-
-        if (mouse_down && mouse_point == NULL && !explosion) {
-            explosion = true;
-            for (int y = 0; y < grid_height; y++) {
-                for (int x = 0; x < grid_width; x++) {
-                    // for (int z = 0; z < pointer_array[y][x].connections->point_size; x++) {
-                    //     if (mouseX >= pointer_array[y][x].position[0] && mouseX <= pointer_array[y][x].position[0] + 10 && mouseY >= pointer_array[y][x].position[1] && mouseY <= pointer_array[y][x].position[1] + 10) {
-                    //         mouse_point = &pointer_array[y][x];
-                    //     }
-                    // }
-                    simulate_wind((vec2){mouseX, mouseY}, 100, 10, &pointer_array[y][x]);
-                    if (mouseX >= pointer_array[y][x].position[0] && mouseX <= pointer_array[y][x].position[0] + 10 && mouseY >= pointer_array[y][x].position[1] && mouseY <= pointer_array[y][x].position[1] + 10) {
-                        mouse_point = &pointer_array[y][x];
-                    }
-                }
-            }
-        }
-        if (mouse_point != NULL) {
-            mouse_point->position[0] = mouseX;
-            mouse_point->position[1] = mouseY;
-        }
-
-        for (int y = 0; y < grid_height; y++) {
-            for (int x = 0; x < grid_width; x++) {
-                draw_connection(&pointer_array[y][x]);
-            }
-        }
-        // for (int y = 0; y < grid_height; y++) {
-        //     for (int x = 0; x < grid_width; x++) {
-        //         draw_point(&pointer_array[y][x]);
-        //     }
-        // }
+        draw_rays(walls, walls_size, mouseX, mouseY);
+        draw_walls(walls, walls_size);
 
         render_end();
     }
+    
+    free(walls);
+    free(segments_array);
 
     thread_pool_cleanup();
 
