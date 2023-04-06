@@ -20,21 +20,21 @@ void render_init(void) {
 
 void render_begin(void) {
     glClearColor(0.08, 0.1, 0.1, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void render_end(void) {
     SDL_GL_SwapWindow(global.render.window);
 }
 
-void render_quad(vec2 pos, vec2 size, vec4 color, bool fill) {
+void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
     glUseProgram(state.shader_default);
 
     mat4x4 model;
     mat4x4_identity(model);
 
-    mat4x4_translate(model, pos[0], pos[1], 0);
-    mat4x4_scale_aniso(model, model, size[0], size[1], 1);
+    mat4x4_translate(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_aniso(model, model, size[0], size[1], size[2]);
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);

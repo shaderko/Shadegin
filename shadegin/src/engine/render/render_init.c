@@ -17,6 +17,7 @@ SDL_Window *render_init_window(u32 width, u32 height) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     SDL_Window *window = SDL_CreateWindow(
         "Game",
@@ -49,11 +50,12 @@ SDL_Window *render_init_window(u32 width, u32 height) {
 }
 
 void render_init_shaders(Render_State_Internal *state) {
-    state->shader_default = render_shader_create("./shaders/default.vert", "./shaders/default.frag");
+    state->shader_default = render_shader_create("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default.vert", "/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default.frag");
 
     mat4x4_ortho(state->projection, 0, global.render.width, 0, global.render.height, -2, 2);
 
     glUseProgram(state->shader_default);
+    glEnable(GL_DEPTH_TEST);
     glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "projection"), 1, GL_FALSE, &state->projection[0][0]);
 }
 
