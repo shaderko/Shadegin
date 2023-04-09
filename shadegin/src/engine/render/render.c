@@ -12,6 +12,7 @@ void render_init(void) {
     global.render.window = render_init_window(global.render.width, global.render.height);
 
     render_init_quad(&state.vao_quad, &state.vbo_quad, &state.ebo_quad);
+    render_init_square(&state.vao_square, &state.vbo_square, &state.ebo_square);
     render_init_poly(&state.vao_poly, &state.vbo_poly, &state.ebo_poly);
     render_init_line(&state.vao_line, &state.vbo_line, &state.ebo_line);
     render_init_shaders(&state);
@@ -48,6 +49,31 @@ void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
 
     glBindTexture(GL_TEXTURE_2D, state.texture_color);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+
+    glBindVertexArray(0);
+}
+
+void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {
+    glUseProgram(state.shader_default);
+
+    mat4x4 model;
+    mat4x4_identity(model);
+
+    mat4x4_translate(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_aniso(model, model, size[0], size[1], size[2]);
+
+    glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
+    glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);
+
+    glBindVertexArray(state.vao_square);
+    if (fill)  {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    glBindTexture(GL_TEXTURE_2D, state.texture_color);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
 
     glBindVertexArray(0);
 }

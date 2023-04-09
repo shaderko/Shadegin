@@ -19,5 +19,5 @@ void move_player(vec2 position) {
 }
 
 void render_player() {
-    render_quad((vec3){player.position[0], player.position[1], MIN_DEPTH_VALUE * (player.position[1] + 10)}, (vec3){20, 20, 1}, (vec4){1, .5, 1, 1}, true);
+    render_quad((vec3){player.position[0], player.position[1], MIN_DEPTH_VALUE * (player.position[1] - 10)}, (vec3){20, 20, 1}, (vec4){1, .5, 1, 1}, true);
 }

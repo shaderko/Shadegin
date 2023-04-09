@@ -6,6 +6,7 @@
 
 #include "render.h"
 #include "render_internal.h"
+#include "camera.h"
 
 SDL_Window *render_init_window(u32 width, u32 height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -50,13 +51,15 @@ SDL_Window *render_init_window(u32 width, u32 height) {
 }
 
 void render_init_shaders(Render_State_Internal *state) {
-    state->shader_default = render_shader_create("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default.vert", "/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default.frag");
+    state->shader_default = render_shader_create("./shaders/default.vert", "./shaders/default.frag");
 
-    mat4x4_ortho(state->projection, 0, global.render.width, 0, global.render.height, -2, 2);
+    camera_init(&state->projection, 500, (vec3){0, 1, 2});
+    Camera* camera = get_camera();
 
     glUseProgram(state->shader_default);
     glEnable(GL_DEPTH_TEST);
     glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "projection"), 1, GL_FALSE, &state->projection[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "view"), 1, GL_FALSE, &camera->view[0][0]);
 }
 
 void render_init_color_texture(u32 *texture) {
@@ -80,6 +83,48 @@ void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
     u32 indices[] = {
         0, 1, 3,
         1, 2, 3
+    };
+
+    glGenVertexArrays(1, vao);
+    glGenBuffers(1, vbo);
+    glGenBuffers(1, ebo);
+
+    glBindVertexArray(*vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), NULL);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
+    glEnableVertexAttribArray(1);
+}
+
+void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {
+    f32 vertices[] = {
+        // positions     // texture coordinates
+        -0.5, -0.5,  0.5, 0, 0,
+         0.5, -0.5,  0.5, 1, 0,
+         0.5,  0.5,  0.5, 1, 1,
+        -0.5,  0.5,  0.5, 0, 1,
+
+        -0.5, -0.5, -0.5, 0, 0,
+         0.5, -0.5, -0.5, 1, 0,
+         0.5,  0.5, -0.5, 1, 1,
+        -0.5,  0.5, -0.5, 0, 1,
+    };
+
+    u32 indices[] = {
+         0,  1,  2,  2,  3,  0,
+         4,  5,  6,  6,  7,  4,
+         1,  5,  6,  6,  2,  1,
+         0,  4,  7,  7,  3,  0,
+         3,  7,  6,  6,  2,  3,
+         0,  1,  5,  5,  4,  0
     };
 
     glGenVertexArrays(1, vao);
