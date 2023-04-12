@@ -12,6 +12,8 @@ typedef struct render_state_internal {
     u32 vao_quad;
     u32 vbo_quad;
     u32 ebo_quad;
+    u32 vao_circle;
+    u32 vbo_circle;
     u32 vao_square;
     u32 vbo_square;
     u32 ebo_square;
@@ -34,6 +36,7 @@ SDL_Window *render_init_window(u32 width, u32 height);
 void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo);
 void render_init_screen(u32 *vao, u32 *vbo);
 void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo);
+void render_init_circle(u32 *vao, u32 *vbo);
 void render_init_square(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_line(u32 *vao, u32 *vbo, u32 *ebo);

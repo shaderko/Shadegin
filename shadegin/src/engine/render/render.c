@@ -18,6 +18,7 @@ void render_init(void) {
     render_init_pixelated(&state.low_res_color, &state.low_res_depth, &state.low_res_fbo);
 
     render_init_quad(&state.vao_quad, &state.vbo_quad, &state.ebo_quad);
+    // render_init_circle(&state.vao_circle, &state.vbo_circle);
     render_init_square(&state.vao_square, &state.vbo_square, &state.ebo_square);
     render_init_poly(&state.vao_poly, &state.vbo_poly, &state.ebo_poly);
     render_init_line(&state.vao_line, &state.vbo_line, &state.ebo_line);
@@ -71,7 +72,7 @@ void render_end(void) {
 void render_light(vec3 position) {
     glUseProgram(state.shader_default);
     GLfloat lightPosition[] = {position[0], position[1], position[2]}; // x, y, z
-    GLfloat lightAmbient[] = {0.2f, 0.2f, 0.2f}; // r, g, b
+    GLfloat lightAmbient[] = {0.8f, 0.8f, 0.8f}; // r, g, b
     GLfloat lightDiffuse[] = {0, 1, 1}; // r, g, b
     GLfloat lightSpecular[] = {.2f, .2f, .2f}; // r, g, b
 
@@ -117,6 +118,58 @@ void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 
     glBindVertexArray(0);
+}
+
+void render_circle(vec3 pos, float radius, vec4 color, bool fill) {
+    int num_segments = 100;
+    f32 *vertex_array = (f32*) malloc((num_segments + 1) * 3 * sizeof(f32));
+
+    for (int i = 0; i <= num_segments; i++) {
+        float angle = 2 * M_PI * i / num_segments;
+        float x = radius * cos(angle);
+        float y = radius * sin(angle);
+
+        vertex_array[i * 3] = x;
+        vertex_array[i * 3 + 1] = y;
+        vertex_array[i * 3 + 2] = 0;
+    }
+
+    glUseProgram(state.shader_default);
+
+    mat4x4 model;
+    mat4x4_identity(model);
+
+    mat4x4_translate(model, pos[0], pos[1], pos[2]);
+
+    glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
+    glUniform4fv(glGetUniformLocation(state.shader_default, "color"), 1, color);
+
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, (num_segments + 1) * 3 * sizeof(GLfloat), vertex_array, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glBindVertexArray(vao);
+    if (fill) {
+        glDrawArrays(GL_TRIANGLE_FAN, 0, num_segments + 1);
+    } else {
+        glDrawArrays(GL_LINE_LOOP, 0, num_segments);
+    }
+    glBindVertexArray(0);
+
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+
+    free(vertex_array);
 }
 
 void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {

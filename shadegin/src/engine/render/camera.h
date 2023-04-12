@@ -12,5 +12,5 @@ typedef struct camera {
 
 void camera_init(float distance, float smoothing, vec3 position);
 void camera_update_view();
-void camera_update_position();
+void camera_update_position(vec3 position);
 Camera* get_camera();

@@ -30,13 +30,46 @@ static bool check_collision_square_square(GameObject *object1, GameObject *objec
 }
 
 static bool check_collision_square_circle(GameObject* object1, GameObject* object2) {
-    // TODO:
-    return 0;
+    vec3 squarePos;
+    vec3 circlePos;
+    vec3 squareSize;
+    float circleRadius;
+    if (object1->collider->type == COLIDER_SQUARE) {
+        memcpy(squarePos, object1->position, sizeof(vec3));
+        memcpy(circlePos, object2->position, sizeof(vec3));
+        memcpy(squareSize, object1->collider->data.square.size, sizeof(vec3));
+        circleRadius = object2->collider->data.circle.radius;
+    } else {
+        memcpy(squarePos, object2->position, sizeof(vec3));
+        memcpy(circlePos, object1->position, sizeof(vec3));
+        memcpy(squareSize, object2->collider->data.square.size, sizeof(vec3));
+        circleRadius = object1->collider->data.circle.radius;
+    }
+
+    // Calculate the closest point on the square to the circle's center
+    float closestX = fmax(squarePos[0] - squareSize[0] * .5, fmin(circlePos[0], squarePos[0] + squareSize[0] * .5));
+    float closestY = fmax(squarePos[1] - squareSize[1] * .5, fmin(circlePos[1], squarePos[1] + squareSize[1] * .5));
+
+    // Calculate the squared distance between the closest point and the circle's center
+    float distanceSquared = pow(closestX - circlePos[0], 2) + pow(closestY - circlePos[1], 2);
+
+    printf("collision square circle detected\n");
+
+    return distanceSquared <= pow(circleRadius, 2);
 }
 
 static bool check_collision_circle_circle(GameObject* object1, GameObject* object2) {
-    // TODO:
-    return 0;
+    vec3 pos1;
+    vec3 pos2;
+    memcpy(pos1, object1->position, sizeof(vec3));
+    memcpy(pos2, object2->position, sizeof(vec3));
+    float radius1 = object1->collider->data.circle.radius;
+    float radius2 = object2->collider->data.circle.radius;
+
+    float distanceSquared = pow(pos2[0] - pos1[0], 2) + pow(pos2[1] - pos1[1], 2);
+    float radiusSumSquared = pow(radius1 + radius2, 2);
+
+    return distanceSquared <= radiusSumSquared;
 }
 
 static CollisionCheckFunction collision_function_table[][3] = {

@@ -88,6 +88,8 @@ void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
         printf("Error: Framebuffer is not complete!\n");
         // TODO:
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLint render_init_shader(char *path) {
@@ -169,6 +171,18 @@ void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
+}
+
+void render_init_circle(u32 *vao, u32 *vbo) {
+    glGenVertexArrays(1, vao);
+    glGenBuffers(1, vbo);
+
+    glBindVertexArray(*vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), NULL);
+    glEnableVertexAttribArray(0);
 }
 
 void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {

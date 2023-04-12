@@ -32,7 +32,7 @@ void main()
     float distance = length(light.position - FragPos);
     
     // Calculate attenuation based on distance
-    float attenuation = 1.0 / (distance / 100);
+    float attenuation = 1.0 / (distance / 1000);
 
     // Ambient lighting
     vec3 ambient = light.ambient * material.ambient;

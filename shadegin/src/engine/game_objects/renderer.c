@@ -18,7 +18,7 @@ static void square_render(GameObject* object) {
 }
 
 static void circle_render(GameObject* object) {
-    render_square(object->position, (vec3){10, 10, 10}, (vec4){0, 1, 1, 1}, false);
+    render_circle(object->position, object->renderer->data.circle.radius, (vec4){0, 1, 1, 1}, true);
 }
 
 static RendererRenderFunctions renderer_render_functions[3] = {NULL, square_render, circle_render};
