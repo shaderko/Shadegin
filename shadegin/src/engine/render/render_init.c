@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
+#include <string.h>
 
 #include "../util.h"
 #include "../global.h"
@@ -51,15 +52,58 @@ SDL_Window *render_init_window(u32 width, u32 height) {
 }
 
 void render_init_shaders(Render_State_Internal *state) {
-    state->shader_default = render_shader_create("./shaders/default.vert", "./shaders/default.frag");
+    state->shader_default = render_init_shader("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
+    state->shader_screen = render_init_shader("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
 
-    camera_init(&state->projection, 500, (vec3){0, 1, 2});
+    camera_init(500, 100, (vec3){0, 1, 2});
     Camera* camera = get_camera();
+
+    float aspect_ratio = (float)global.render.width / (float)global.render.height;
+    mat4x4_ortho(state->projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, -500, 500);
 
     glUseProgram(state->shader_default);
     glEnable(GL_DEPTH_TEST);
     glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "projection"), 1, GL_FALSE, &state->projection[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "view"), 1, GL_FALSE, &camera->view[0][0]);
+}
+
+void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
+    glGenTextures(1, color);
+    glBindTexture(GL_TEXTURE_2D, *color);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, global.render.width, global.render.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenRenderbuffers(1, depth);
+    glBindRenderbuffer(GL_RENDERBUFFER, *depth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, global.render.width, global.render.height);
+
+    // Create low-resolution FBO and attach color texture and depth renderbuffer
+    glGenFramebuffers(1, fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *color, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *depth);
+
+    // Check if FBO creation was successful
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        printf("Error: Framebuffer is not complete!\n");
+        // TODO:
+    }
+}
+
+GLint render_init_shader(char *path) {
+    size_t len = strlen(path);
+  
+    char vertex_shader[len + 6];
+    memset(vertex_shader, 0, sizeof(vertex_shader)); // initialize to empty string
+    strcat(vertex_shader, path);
+    strcat(vertex_shader, ".vert");
+    
+    char fragment_shader[len + 6];
+    memset(fragment_shader, 0, sizeof(fragment_shader)); // initialize to empty string
+    strcat(fragment_shader, path);
+    strcat(fragment_shader, ".frag");
+    GLint shader = render_shader_create(vertex_shader, fragment_shader);
+    return shader;
 }
 
 void render_init_color_texture(u32 *texture) {
@@ -70,6 +114,29 @@ void render_init_color_texture(u32 *texture) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, solid_white);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void render_init_screen(u32 *vao, u32 *vbo) {
+    f32 quadVertices[] = {
+        // Positions    // Texture Coords
+        -1.0f,  1.0f,     0.0f, 1.0f,
+        -1.0f, -1.0f,     0.0f, 0.0f,
+         1.0f,  1.0f,     1.0f, 1.0f,
+         1.0f, -1.0f,     1.0f, 0.0f
+    };
+
+    glGenVertexArrays(1, vao);
+    glGenBuffers(1, vbo);
+
+    glBindVertexArray(*vao);
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void*)(2 * sizeof(f32)));
 }
 
 void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
@@ -106,25 +173,56 @@ void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
 
 void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {
     f32 vertices[] = {
-        // positions     // texture coordinates
-        -0.5, -0.5,  0.5, 0, 0,
-         0.5, -0.5,  0.5, 1, 0,
-         0.5,  0.5,  0.5, 1, 1,
-        -0.5,  0.5,  0.5, 0, 1,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-        -0.5, -0.5, -0.5, 0, 0,
-         0.5, -0.5, -0.5, 1, 0,
-         0.5,  0.5, -0.5, 1, 1,
-        -0.5,  0.5, -0.5, 0, 1,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
     u32 indices[] = {
-         0,  1,  2,  2,  3,  0,
-         4,  5,  6,  6,  7,  4,
-         1,  5,  6,  6,  2,  1,
-         0,  4,  7,  7,  3,  0,
-         3,  7,  6,  6,  2,  3,
-         0,  1,  5,  5,  4,  0
+        0, 1, 2, 3, 4, 5,         // Front face
+        6, 7, 8, 9, 10, 11,       // Back face
+        12, 13, 14, 15, 16, 17,   // Left face
+        18, 19, 20, 21, 22, 23,   // Right face
+        24, 25, 26, 27, 28, 29,   // Bottom face
+        30, 31, 32, 33, 34, 35    // Top face
     };
 
     glGenVertexArrays(1, vao);
@@ -139,10 +237,10 @@ void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), NULL);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), NULL);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
 }
 

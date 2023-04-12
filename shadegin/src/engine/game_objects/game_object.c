@@ -21,7 +21,7 @@ static size_t size = 0;
 
 
 // Creates a new game object with the given parameters and adds it to the internal list of game objects. Returns a pointer to the created game object.
-GameObject* add_object(vec3 position, vec3 square_size, vec3 velocity, float mass, bool is_static, ColliderType collider_type, const void* data) {
+GameObject* add_object(vec3 position, vec3 square_size, vec3 velocity, float mass, bool is_static, ColliderType collider_type, RendererType renderer_type, const void* data) {
     objects = realloc(objects, (size + 1) * sizeof(GameObject*));
     if (!objects) {
         // Handle allocation error TODO:
@@ -29,14 +29,15 @@ GameObject* add_object(vec3 position, vec3 square_size, vec3 velocity, float mas
     }
 
     Collider* collider = collider_init(collider_type, data);
+    Renderer* renderer = renderer_init(renderer_type, data);
 
     GameObject* object = calloc(1, sizeof(GameObject));
     memcpy(object->position, position, sizeof(vec3));
-    memcpy(object->size, square_size, sizeof(vec3));
     memcpy(object->velocity, velocity, sizeof(vec3));
     object->mass = mass;
     object->is_static = is_static;
     object->collider = collider;
+    object->renderer = renderer;
     objects[size] = object;
     size++;
 
@@ -46,8 +47,12 @@ GameObject* add_object(vec3 position, vec3 square_size, vec3 velocity, float mas
 // Renders all game objects in the world using the render_quad() function from the render module.
 void render_game_objects() {
     for (int i = 0; i < size; i++) {
-        render_square(objects[i]->position, objects[i]->size, (vec4){.5, 1, 1, 1}, true);
+        renderer_render(objects[i]);
     }
+}
+
+void render_game_object(GameObject* object) {
+    renderer_render(object);
 }
 
 // Checks if the given game object is colliding with the ground. Returns true if a collision is detected, and false otherwise.

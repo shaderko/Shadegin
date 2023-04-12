@@ -49,12 +49,12 @@ static CollisionCheckFunction collision_function_table[][3] = {
 };
 
 static void collider_square_init(Collider* collider, const void* init_data) {
-    collider->type = SQUARE;
+    collider->type = COLIDER_SQUARE;
     collider->data.square = *(const SquareCollider *)init_data;
 }
 
 static void collider_circle_init(Collider* collider, const void* init_data) {
-    collider->type = CIRCLE;
+    collider->type = COLIDER_CIRCLE;
     collider->data.circle = *(const CircleCollider *)init_data;
 }
 

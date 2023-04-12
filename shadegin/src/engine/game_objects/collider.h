@@ -6,9 +6,9 @@
 typedef struct gameobject GameObject;
 
 typedef enum {
-    NONE,
-    SQUARE,
-    CIRCLE,
+    COLIDER_NONE,
+    COLIDER_SQUARE,
+    COLIDER_CIRCLE,
     // Add more collider structures here
 } ColliderType;
 
