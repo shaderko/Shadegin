@@ -126,7 +126,7 @@ void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {
     mat4x4_identity(model);
 
     mat4x4_translate(model, pos[0], pos[1], pos[2]);
-    mat4x4_rotate_X(model, model, 0.785398);
+    // mat4x4_rotate_X(model, model, 0.785398);
     mat4x4_scale_aniso(model, model, size[0], size[1], size[2]);
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);

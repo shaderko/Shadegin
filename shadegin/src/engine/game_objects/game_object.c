@@ -57,7 +57,7 @@ void render_game_object(GameObject* object) {
 
 // Checks if the given game object is colliding with the ground. Returns true if a collision is detected, and false otherwise.
 static bool check_ground_collision(GameObject* object) {
-    return (object->position[2] <= (object->position[1] * MIN_DEPTH_VALUE) + GROUND_SIZE && object->position[2] >= (object->position[1] * MIN_DEPTH_VALUE) - GROUND_SIZE);
+    return object->position[1] <= 0;
 }
 
 // Simulates the effect of gravity on all dynamic game objects. The gravity parameter represents the force of gravity to apply.
@@ -70,10 +70,10 @@ void simulate_gravity(float gravity) {
 
         float velocity_y = (object->velocity[1] + (gravity * object->mass));
 
-        if (check_ground_collision(object)) {
-            object->velocity[1] = 0;
-            continue;
-        }
+        // if (check_ground_collision(object)) {
+        //     object->velocity[1] = 0;
+        //     continue;
+        // }
 
         for (int x = 0; x < size; x++) {
             if (x == i) {
@@ -81,8 +81,29 @@ void simulate_gravity(float gravity) {
             }
 
             if (check_collision(object, objects[x])) {
-                // Collision detected TODO:
-                velocity_y = 0;
+                // Collision detected, slower moving object gets as much velocity to get it at the same amount that the other is moving
+                // and the other loses that velocity
+                float half = (velocity_y - objects[x]->velocity[1]) / 100;
+                if (fabs(velocity_y) > fabs(objects[x]->velocity[1])) {
+                    if (velocity_y < 0) {
+                        velocity_y += half;
+                    } else {
+                        velocity_y -= half;
+                    }
+                } else {
+                    if (velocity_y < 0) {
+                        velocity_y += half;
+                    } else {
+                        velocity_y -= half;
+                    }
+                }
+
+                // float half_x = (object->velocity[0] - objects[x]->velocity[0]) / 3;
+                // if (fabs(object->velocity[0]) > fabs(objects[x]->velocity[0])) {
+                //     object->velocity[0] -= half_x;
+                // } else {
+                //     object->velocity[0] += half_x;
+                // }
             }
         }
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <linmath.h>
-#include "../render/render.h"
 
 typedef struct gameobject GameObject;
 

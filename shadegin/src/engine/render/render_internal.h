@@ -1,5 +1,4 @@
-#ifndef RENDER_INTERNAL_H
-#define RENDER_INTERNAL_H
+#pragma once
 
 #include <SDL2/SDL.h>
 
@@ -39,7 +38,5 @@ void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_line(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_color_texture(u32 *texture);
 void render_init_shaders(Render_State_Internal *state);
-GLint render_init_shader(char *path);
 u32 render_shader_create(const char *path_vert, const char *path_frag);
-
-#endif
+u32 render_shader_create_name(char *path);

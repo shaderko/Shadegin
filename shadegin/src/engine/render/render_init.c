@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
-#include <string.h>
 
 #include "../util.h"
 #include "../global.h"
@@ -52,14 +51,14 @@ SDL_Window *render_init_window(u32 width, u32 height) {
 }
 
 void render_init_shaders(Render_State_Internal *state) {
-    state->shader_default = render_init_shader("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
-    state->shader_screen = render_init_shader("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
+    state->shader_default = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
+    state->shader_screen = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
 
-    camera_init(500, 100, (vec3){0, 1, 2});
+    camera_init(100, 100, (vec3){0, 1, 2}, NULL);
     Camera* camera = get_camera();
 
     float aspect_ratio = (float)global.render.width / (float)global.render.height;
-    mat4x4_ortho(state->projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, -500, 500);
+    mat4x4_ortho(state->projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, 1.0f, 100000.0f);
 
     glUseProgram(state->shader_default);
     glEnable(GL_DEPTH_TEST);
@@ -88,22 +87,8 @@ void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
         printf("Error: Framebuffer is not complete!\n");
         // TODO:
     }
-}
 
-GLint render_init_shader(char *path) {
-    size_t len = strlen(path);
-  
-    char vertex_shader[len + 6];
-    memset(vertex_shader, 0, sizeof(vertex_shader)); // initialize to empty string
-    strcat(vertex_shader, path);
-    strcat(vertex_shader, ".vert");
-    
-    char fragment_shader[len + 6];
-    memset(fragment_shader, 0, sizeof(fragment_shader)); // initialize to empty string
-    strcat(fragment_shader, path);
-    strcat(fragment_shader, ".frag");
-    GLint shader = render_shader_create(vertex_shader, fragment_shader);
-    return shader;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void render_init_color_texture(u32 *texture) {

@@ -52,3 +52,21 @@ u32 render_shader_create(const char *path_vert, const char *path_frag) {
 
     return shader;
 }
+
+// Path to the file without extension with file name.
+// This function will create shaders for path.vert, path.frag using render_shader_create()
+u32 render_shader_create_name(char *path) {
+    size_t len = strlen(path);
+  
+    char vertex_shader[len + 6];
+    memset(vertex_shader, 0, sizeof(vertex_shader));
+    strcat(vertex_shader, path);
+    strcat(vertex_shader, ".vert");
+    
+    char fragment_shader[len + 6];
+    memset(fragment_shader, 0, sizeof(fragment_shader));
+    strcat(fragment_shader, path);
+    strcat(fragment_shader, ".frag");
+
+    return render_shader_create(vertex_shader, fragment_shader);
+}

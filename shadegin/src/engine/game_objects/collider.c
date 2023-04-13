@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../render/render.h"
+
 static bool check_collision_square_square(GameObject *object1, GameObject *object2) {
     SquareCollider square1 = object1->collider->data.square;
     SquareCollider square2 = object2->collider->data.square;
@@ -15,9 +17,11 @@ static bool check_collision_square_square(GameObject *object1, GameObject *objec
     // Calculate the half-width and half-height for both squares
     float half_width1 = square1.size[0] / 2.0f;
     float half_height1 = square1.size[1] / 2.0f;
+    float half_depth1 = square1.size[2] / 2.0f;
 
     float half_width2 = square2.size[0] / 2.0f;
     float half_height2 = square2.size[1] / 2.0f;
+    float half_depth2 = square2.size[2] / 2.0f;
 
     // Check if the squares are overlapping along the x-axis
     bool overlap_x = fabs(pos1[0] - pos2[0]) < (half_width1 + half_width2);
@@ -25,8 +29,10 @@ static bool check_collision_square_square(GameObject *object1, GameObject *objec
     // Check if the squares are overlapping along the y-axis
     bool overlap_y = fabs(pos1[1] - pos2[1]) < (half_height1 + half_height2);
 
+    bool overlap_z = fabs(pos1[2] - pos2[2]) < (half_depth1 + half_depth2);
+
     // If the squares are overlapping along both the x and y axes, they are colliding
-    return overlap_x && overlap_y;
+    return overlap_x && overlap_y && overlap_z;
 }
 
 static bool check_collision_square_circle(GameObject* object1, GameObject* object2) {
@@ -88,4 +94,8 @@ int check_collision(GameObject* object1, GameObject* object2) {
 
     // Return 0 (no collision) for unsupported collider type combinations or NULL function pointers
     return 0;
+}
+
+void render_collider(GameObject* object) {
+    render_square(object->position, (vec3){object->collider->data.square.size[0] + 1, object->collider->data.square.size[1] + 1, object->collider->data.square.size[2] + 1}, (vec4){0, 1, 0, 1}, false);
 }

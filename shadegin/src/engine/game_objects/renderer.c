@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "game_object.h"
+#include "../render/render.h"
 
 static void square_init(Renderer* renderer, const void* init_data) {
     renderer->type = RENDERER_SQUARE;

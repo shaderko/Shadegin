@@ -31,6 +31,6 @@ typedef struct collider {
 
 typedef bool (*CollisionCheckFunction)(GameObject *object1, GameObject *object2);
 typedef void (*collision_init_function)(Collider* collider, const void* init_data);
-
+void render_collider(GameObject* object) ;
 Collider* collider_init(ColliderType type, const void *init_data);
 int check_collision(GameObject* object1, GameObject* object2);
