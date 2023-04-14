@@ -1,7 +1,6 @@
 #include "collider.h"
 #include "game_object.h"
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include "../render/render.h"
 

@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     bool running = true;
     bool mouse_down = false;
 
-    player_init((vec2){0, 0}, .01);
+    player_init((vec2){0, 0}, .1);
     Camera* camera = get_camera();
     camera->target = get_player();
 
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
         // }
         // printf("%f\n", object1->position[2]);
 
-        simulate_gravity(-.00001);
+        simulate_gravity(-.001);
 
         move_player((vec2){mouseX + camera->position[0] - global.render.width / 2, mouseY + camera->position[1] - global.render.height / 2});
 

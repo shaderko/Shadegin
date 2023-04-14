@@ -58,15 +58,20 @@ u32 render_shader_create(const char *path_vert, const char *path_frag) {
 u32 render_shader_create_name(char *path) {
     size_t len = strlen(path);
   
-    char vertex_shader[len + 6];
+    char *vertex_shader = malloc(len + 6);
     memset(vertex_shader, 0, sizeof(vertex_shader));
     strcat(vertex_shader, path);
     strcat(vertex_shader, ".vert");
     
-    char fragment_shader[len + 6];
+    char *fragment_shader = malloc(len + 6);
     memset(fragment_shader, 0, sizeof(fragment_shader));
     strcat(fragment_shader, path);
     strcat(fragment_shader, ".frag");
 
-    return render_shader_create(vertex_shader, fragment_shader);
+    u32 result = render_shader_create(vertex_shader, fragment_shader);
+
+    free(vertex_shader);
+    free(fragment_shader);
+
+    return result;
 }

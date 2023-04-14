@@ -45,6 +45,6 @@ void renderer_render(GameObject* object) {
     RendererRenderFunctions render_func = renderer_render_functions[type];
 
     if (render_func) {
-        return render_func(object);
+        render_func(object);
     }
 }
