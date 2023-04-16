@@ -20,7 +20,7 @@ void add_wall(vec3 position, vec3 wall_size, vec4 color) {
         for (int y = 0; y < wall_size[1] / 5; y++) {
             // GameObject** array_x = malloc(sizeof(GameObject*) * wall_size[0]);
             for (int x = 0; x < wall_size[0] / 5; x++) {
-                GameObject* object = add_object((vec3){position[0] + x * 5, position[1] + y * 5, position[2] + z * 5}, (vec3){20, 20, 20}, (vec3){0, 0, 0}, 5, false, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){5, 5, 5});
+                // GameObject* object = add_object((vec3){position[0] + x * 5, position[1] + y * 5, position[2] + z * 5}, (vec3){20, 20, 20}, (vec3){0, 0, 0}, 5, false, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){5, 5, 5});
                 // array_x[x] = object;
             }
             // array_y[y] = array_x;

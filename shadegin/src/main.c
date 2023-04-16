@@ -21,16 +21,19 @@ int main(int argc, char *argv[]) {
 
     add_wall((vec3){50, 100, 0}, (vec3){20, 20, 20}, (vec4){1, 1, 1, 1});
 
-    GameObject* object1 = add_object((vec3){20, 150, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, false, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){25, 25, 25});
-    add_object((vec3){0, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, true, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){100, 5, 500});
+    // GameObject* object1 = add_object((vec3){20, 150, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, false, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){25, 25, 25});
+    // add_object((vec3){0, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, true, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){100, 5, 500});
     // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
+
+    GameObject* object = AGameObject->Init();
+    GameObject* object1 = AGameObject->Init();
 
     bool running = true;
     bool mouse_down = false;
 
     player_init((vec2){0, 0}, .1);
     Camera* camera = get_camera();
-    camera->target = get_player();
+    // camera->target = get_player();
 
     while (running) {
         SDL_Event event;
@@ -58,7 +61,10 @@ int main(int argc, char *argv[]) {
         // }
         // printf("%f\n", object1->position[2]);
 
-        simulate_gravity(-.001);
+        // simulate_gravity(-.001);
+        AGameObject->Update(object1);
+
+        printf("%f, %f\n", object->position_x, object1->position_x);
 
         move_player((vec2){mouseX + camera->position[0] - global.render.width / 2, mouseY + camera->position[1] - global.render.height / 2});
 
@@ -66,9 +72,9 @@ int main(int argc, char *argv[]) {
 
         // render_begin_pixelated();
 
-        render_game_objects();
+        // render_game_objects();
         // render_collider(object1); 
-        render_player();
+        // render_player();
 
         // render_end_pixelated();
         // render_walls();

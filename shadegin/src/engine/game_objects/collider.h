@@ -1,36 +1,50 @@
-#pragma once
+/**
+ * Collider
+ *
+ * Collisions used for physics
+ */
 
-#include <linmath.h>
-#include <stdbool.h>
+#ifndef COLLIDER_H
+#define COLLIDER_H
 
-typedef struct gameobject GameObject;
-
-typedef enum {
-    COLIDER_NONE,
-    COLIDER_SQUARE,
-    COLIDER_CIRCLE,
-    // Add more collider structures here
+typedef enum
+{
+    Collider_NULL,
+    Collider_BOX,
+    Collider_SPHERE,
 } ColliderType;
 
-typedef struct {
-    vec3 size;
-} SquareCollider;
+typedef struct BoxCollider BoxCollider;
+typedef struct SphereCollider SphereCollider;
 
-typedef struct {
+struct BoxCollider
+{
+    float width;
+    float height;
+    float depth;
+};
+
+struct SphereCollider
+{
     float radius;
-} CircleCollider;
+};
 
-typedef struct collider {
+typedef struct Collider Collider;
+struct Collider
+{
+    /**
+     * Used to specify which collision is used
+     */
     ColliderType type;
-    union {
-        SquareCollider square;
-        CircleCollider circle;
-        // Add more collider structures here
-    } data;
-} Collider;
 
-typedef bool (*CollisionCheckFunction)(GameObject *object1, GameObject *object2);
-typedef void (*collision_init_function)(Collider* collider, const void* init_data);
-void render_collider(GameObject* object) ;
-Collider* collider_init(ColliderType type, const void *init_data);
-int check_collision(GameObject* object1, GameObject* object2);
+    /**
+     *
+     */
+    union
+    {
+        BoxCollider box;
+        SphereCollider sphere;
+    } data;
+};
+
+#endif

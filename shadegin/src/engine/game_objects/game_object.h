@@ -1,20 +1,69 @@
-#pragma once
+/**
+ * Game Object
+ * 
+ * Object that can have different types of renderer and collider, has collisions and gravity
+ */
 
-#include <linmath.h>
-#include "collider.h"
-#include "renderer.h"
+#ifndef GAME_OBJECT_H
+#define GAME_OBJECT_H
 
-typedef struct gameobject {
-    vec3 position;
-    vec3 velocity;
+#include <stdbool.h>
+#include <stdlib.h>
+
+typedef struct GameObject GameObject;
+struct GameObject
+{
+    /**
+     * Vector 3 position of object in world space
+     */
+    float position_x;
+    float position_y;
+    float position_z;
+
+    /**
+     * Vector 3 velocity in each direction
+     */
+    float velocity_x;
+    float velocity_y;
+    float velocity_z;
+
+    /**
+     * Mass represents the speed at which object falls,
+     * and how much of velocity is transfered/lost on collision
+     */
     float mass;
-    bool is_static;
-    Collider* collider;
-    Renderer* renderer;
-} GameObject;
 
-GameObject* add_object(vec3 position, vec3 square_size, vec3 velocity, float mass, bool is_static, ColliderType collider_type, RendererType renderer_type, const void* data);
-void render_game_objects();
-void render_game_object(GameObject* object);
-void simulate_gravity(float gravity);
-void update_position(GameObject* object);
+    /**
+     * Is a static or dynamic object (Doesn't move or does)
+     */
+    bool is_static;
+
+    /**
+     * Collider of object
+     */
+    // Collider* collider;
+
+    /**
+     * Object renderer
+     */
+    // Renderer* renderer;
+};
+
+struct AGameObject
+{
+    /**
+     * Create game object
+     * 
+     * Can have different collider and renderer types
+     */
+    GameObject* (*Init)  ();
+
+    /**
+     * Updates the position of game object with game objects velocity
+     */
+    void        (*Update)(GameObject* object);
+};
+
+extern struct AGameObject AGameObject[1];
+
+#endif
