@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
 
     GameObject* object = AGameObject->Init();
-    GameObject* object1 = AGameObject->Init();
+    GameObject* object1 = AGameObject->InitBox(10, 10, 10);
 
     bool running = true;
     bool mouse_down = false;
@@ -62,7 +62,6 @@ int main(int argc, char *argv[]) {
         // printf("%f\n", object1->position[2]);
 
         // simulate_gravity(-.001);
-        AGameObject->Update(object1);
 
         printf("%f, %f\n", object->position_x, object1->position_x);
 

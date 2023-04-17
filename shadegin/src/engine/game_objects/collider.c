@@ -12,26 +12,18 @@
 #include "collider.h"
 #include "../util.h"
 
-Collider *Init(ColliderType type)
+static void Delete(Collider* collider) {
+    free(collider);
+}
+
+Collider* create_collider()
 {
     Collider *collider = malloc(sizeof(Collider));
     if (!collider)
     {
         ERROR_EXIT("error allocating memory for collider.");
     }
-    collider->type = type;
-
-    switch (type)
-    {
-    case Collider_NULL:
-        return NULL;
-    case Collider_BOX:
-        collider->data.box = (const BoxCollider){10, 10, 10};
-    case Collider_SPHERE:
-        collider->data.sphere = (const SphereCollider){10};
-    default:
-        ERROR_EXIT("can't create a collider with given type %d", type);
-    }
+    collider->Delete = Delete;
 
     return collider;
 }

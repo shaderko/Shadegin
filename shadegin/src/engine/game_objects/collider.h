@@ -1,50 +1,37 @@
 /**
- * Collider
- *
- * Collisions used for physics
+ * @file collider.h
+ * @author https://github.com/shaderko
+ * @brief Collisions used for physics
+ * @version 0.1
+ * @date 2023-04-17
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 
 #ifndef COLLIDER_H
 #define COLLIDER_H
 
-typedef enum
-{
-    Collider_NULL,
-    Collider_BOX,
-    Collider_SPHERE,
-} ColliderType;
+#include <stdarg.h>
 
-typedef struct BoxCollider BoxCollider;
-typedef struct SphereCollider SphereCollider;
-
-struct BoxCollider
-{
-    float width;
-    float height;
-    float depth;
-};
-
-struct SphereCollider
-{
-    float radius;
-};
+/**
+ * Function pointer definition for different collider types
+ */
+typedef void (*ptrCollide)(Collider*);
+typedef void (*ptrDelete) (Collider*);
 
 typedef struct Collider Collider;
 struct Collider
 {
     /**
-     * Used to specify which collision is used
+     * Pointer to the subclass
      */
-    ColliderType type;
+    void*      derived;
 
-    /**
-     *
-     */
-    union
-    {
-        BoxCollider box;
-        SphereCollider sphere;
-    } data;
+    ptrCollide Collide;
+    ptrDelete  Delete;
 };
+
+Collider* create_collider();
 
 #endif
