@@ -1,6 +1,6 @@
 /**
  * @file collider.c
- * @author Filip Lukovic (filiplukovic0@gmail.com)
+ * @author https://github.com/shaderko
  * @brief Collider used for collisions
  * @version 0.1
  * @date 2023-04-14
@@ -12,11 +12,12 @@
 #include "collider.h"
 #include "../util.h"
 
-static void Delete(Collider* collider) {
+static void Delete(Collider *collider)
+{
     free(collider);
 }
 
-Collider* create_collider()
+Collider *create_collider()
 {
     Collider *collider = malloc(sizeof(Collider));
     if (!collider)

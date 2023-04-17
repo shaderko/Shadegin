@@ -11,10 +11,10 @@
 
 #include "../game_files/player.h"
 #include "../game_files/walls/wall.h"
-#include "engine/game_objects/collider.h"
 #include "engine/game_objects/game_object.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     render_init();
 
     thread_pool_init(8, 5000);
@@ -25,21 +25,24 @@ int main(int argc, char *argv[]) {
     // add_object((vec3){0, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, true, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){100, 5, 500});
     // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
 
-    GameObject* object = AGameObject->Init();
-    GameObject* object1 = AGameObject->InitBox(10, 10, 10);
+    GameObject *object = AGameObject->Init();
+    GameObject *object1 = AGameObject->InitBox(10, 10, 10);
 
     bool running = true;
     bool mouse_down = false;
 
     player_init((vec2){0, 0}, .1);
-    Camera* camera = get_camera();
+    Camera *camera = get_camera();
     // camera->target = get_player();
 
-    while (running) {
+    while (running)
+    {
         SDL_Event event;
 
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
             case SDL_QUIT:
                 running = false;
                 break;
@@ -72,14 +75,13 @@ int main(int argc, char *argv[]) {
         // render_begin_pixelated();
 
         // render_game_objects();
-        // render_collider(object1); 
+        // render_collider(object1);
         // render_player();
 
         // render_end_pixelated();
         // render_walls();
 
         render_light((vec3){100, 100, 100});
-
 
         render_end();
     }

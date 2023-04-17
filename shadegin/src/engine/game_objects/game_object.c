@@ -15,19 +15,20 @@ static GameObject *Init()
 {
     GameObject *object = malloc(sizeof(GameObject));
 
-
     object->position_x = 10;
 
     return object;
 }
 
-GameObject* InitBox(float width, float height, float depth) {
-    GameObject* object = Init();
+GameObject *InitBox(float width, float height, float depth)
+{
+    GameObject *object = Init();
     object->collider = ABoxCollider->Init(width, height, depth);
     return object;
 }
 
-GameObject* InitSphere(float radius) {
+GameObject *InitSphere(float radius)
+{
     // object->collider = ABoxCollider->Init(10, 10, 10);
     return Init();
 }

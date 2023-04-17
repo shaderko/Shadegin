@@ -4,32 +4,37 @@
  * @brief Box collider used by Collider class
  * @version 0.1
  * @date 2023-04-17
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
+#include <stdlib.h>
 #include "box_collider.h"
 
-static bool Collide(Collider* const collider) {
+static bool Collide(Collider *collider)
+{
     return false;
 }
 
-static void Delete(Collider* collider) {
-    BoxCollider* child = collider->derived;
+static void Delete(Collider *collider)
+{
+    BoxCollider *child = collider->derived;
 
     free(child);
     free(collider);
 }
 
-Collider* Init(float width, float height, float depth) {
-    BoxCollider* box_collider;
-    Collider* collider = create_collider();
+Collider *Init(float width, float height, float depth)
+{
+    BoxCollider *box_collider;
+    Collider *collider = create_collider();
 
     box_collider = malloc(sizeof(BoxCollider));
-    if (box_collider == NULL) {
+    if (box_collider == NULL)
+    {
         collider->Delete(collider);
-        return; // TODO: error exit
+        return NULL; // TODO: error exit
     }
     collider->derived = box_collider;
     box_collider->parent = collider;
