@@ -6,7 +6,8 @@
 
 static Render_State_Internal state = {0};
 
-void render_init(void) {
+void render_init(void)
+{
     global.render.width = 800;
     global.render.height = 600;
     global.render.low_res_width = global.render.width / 5;
@@ -24,17 +25,20 @@ void render_init(void) {
     render_init_color_texture(&state.texture_color);
 }
 
-void render_shaders(Camera* camera) {
+void render_shaders(Camera *camera)
+{
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "view"), 1, GL_FALSE, &camera->view[0][0]);
 }
 
-void render_begin_pixelated(void) {
+void render_begin_pixelated(void)
+{
     glBindFramebuffer(GL_FRAMEBUFFER, state.low_res_fbo);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void render_end_pixelated(void) {
+void render_end_pixelated(void)
+{
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // Bind the default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -56,22 +60,34 @@ void render_end_pixelated(void) {
     glBindVertexArray(0);
 }
 
-
-void render_begin(void) {
+void render_begin(void)
+{
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void render_end(void) {
+void render_end(void)
+{
     SDL_GL_SwapWindow(global.render.window);
 }
 
-void render_light(vec3 position) {
+void render_update_projection(Camera *camera)
+{
+    float aspect_ratio = (float)global.render.width / (float)global.render.height;
+    mat4x4_ortho(state.projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, 1.0f, 100000.0f);
+
+    glUseProgram(state.shader_default);
+    glEnable(GL_DEPTH_TEST);
+    glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "projection"), 1, GL_FALSE, &state.projection[0][0]);
+}
+
+void render_light(vec3 position)
+{
     glUseProgram(state.shader_default);
     GLfloat lightPosition[] = {position[0], position[1], position[2]}; // x, y, z
-    GLfloat lightAmbient[] = {0.2f, 0.2f, 0.2f}; // r, g, b
-    GLfloat lightDiffuse[] = {0, 1, 1}; // r, g, b
-    GLfloat lightSpecular[] = {.2f, .2f, .2f}; // r, g, b
+    GLfloat lightAmbient[] = {0, 0.2f, 0.2f};                          // r, g, b
+    GLfloat lightDiffuse[] = {0, 1, 1};                                // r, g, b
+    GLfloat lightSpecular[] = {.2f, .2f, .2f};                         // r, g, b
 
     glUniform3fv(glGetUniformLocation(state.shader_default, "light.position"), 1, lightPosition);
     glUniform3fv(glGetUniformLocation(state.shader_default, "light.ambient"), 1, lightAmbient);
@@ -81,8 +97,8 @@ void render_light(vec3 position) {
     glUniform3fv(glGetUniformLocation(state.shader_default, "light.linear"), 1, &(float){0.09f});
     glUniform3fv(glGetUniformLocation(state.shader_default, "light.quadratic"), 1, &(float){0.032f});
 
-    GLfloat ambient[] = {.1f, .1f, .1f}; // x, y, z
-    GLfloat diffuse[] = {1, 1, 1}; // r, g, b
+    GLfloat ambient[] = {0, .3f, .3f};       // x, y, z
+    GLfloat diffuse[] = {0, 0, 1};           // r, g, b
     GLfloat specular[] = {0.5f, 0.5f, 0.5f}; // r, g, b
     GLfloat shininess = 0;
 
@@ -92,7 +108,8 @@ void render_light(vec3 position) {
     glUniform3fv(glGetUniformLocation(state.shader_default, "material.shininess"), 1, &shininess);
 }
 
-void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
+void render_quad(vec3 pos, vec3 size, vec4 color, bool fill)
+{
     glUseProgram(state.shader_default);
 
     mat4x4 model;
@@ -105,9 +122,12 @@ void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);
 
     glBindVertexArray(state.vao_quad);
-    if (fill)  {
+    if (fill)
+    {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    } else {
+    }
+    else
+    {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
@@ -117,7 +137,8 @@ void render_quad(vec3 pos, vec3 size, vec4 color, bool fill) {
     glBindVertexArray(0);
 }
 
-void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {
+void render_square(vec3 pos, vec3 size, vec4 color, bool fill)
+{
     glUseProgram(state.shader_default);
 
     mat4x4 model;
@@ -131,9 +152,12 @@ void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);
 
     glBindVertexArray(state.vao_square);
-    if (fill)  {
+    if (fill)
+    {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    } else {
+    }
+    else
+    {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
@@ -143,27 +167,30 @@ void render_square(vec3 pos, vec3 size, vec4 color, bool fill) {
     glBindVertexArray(0);
 }
 
-void render_poly(vec2 *vertices, size_t num_vertices, vec4 color) {
+void render_poly(vec2 *vertices, size_t num_vertices, vec4 color)
+{
     glUseProgram(state.shader_default);
 
-    f32 *vertex_array = (f32*) malloc(num_vertices * 5 * sizeof(f32));
+    f32 *vertex_array = (f32 *)malloc(num_vertices * 5 * sizeof(f32));
 
-    for (int i = 0; i < num_vertices; i++) {
+    for (int i = 0; i < num_vertices; i++)
+    {
         int j = i * 5;
         vertex_array[j] = vertices[i][0];
-        vertex_array[j+1] = vertices[i][1];
-        vertex_array[j+2] = 0;
-        vertex_array[j+3] = 1;
-        vertex_array[j+4] = 1;
+        vertex_array[j + 1] = vertices[i][1];
+        vertex_array[j + 2] = 0;
+        vertex_array[j + 3] = 1;
+        vertex_array[j + 4] = 1;
     }
 
-    u32 *indices = (u32*) malloc(num_vertices * 3 * sizeof(u32));
+    u32 *indices = (u32 *)malloc(num_vertices * 3 * sizeof(u32));
 
-    for (int i = 0; i < num_vertices - 1; i++) {
+    for (int i = 0; i < num_vertices - 1; i++)
+    {
         int j = i * 3;
         indices[j] = 0;
-        indices[j+1] = i+1;
-        indices[j+2] = i+2;
+        indices[j + 1] = i + 1;
+        indices[j + 2] = i + 2;
     }
 
     indices[(num_vertices - 1) * 3 - 1] = 1;
@@ -178,8 +205,7 @@ void render_poly(vec2 *vertices, size_t num_vertices, vec4 color) {
         {1, 0, 0, 0},
         {0, 1, 0, 0},
         {0, 0, 1, 0},
-        {0, 0, 0, 1}
-    };
+        {0, 0, 0, 1}};
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);
@@ -195,13 +221,13 @@ void render_poly(vec2 *vertices, size_t num_vertices, vec4 color) {
     free(indices);
 }
 
-void render_line(vec2 src_pos, vec2 dst_pos, vec4 color) {
+void render_line(vec2 src_pos, vec2 dst_pos, vec4 color)
+{
     glUseProgram(state.shader_default);
 
     vec3 vertices[] = {
         {src_pos[0], src_pos[1], 0},
-        {dst_pos[0], dst_pos[1], 0}
-    };
+        {dst_pos[0], dst_pos[1], 0}};
 
     glBindBuffer(GL_ARRAY_BUFFER, state.vbo_line);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -210,8 +236,7 @@ void render_line(vec2 src_pos, vec2 dst_pos, vec4 color) {
         {1, 0, 0, 0},
         {0, 1, 0, 0},
         {0, 0, 1, 0},
-        {0, 0, 0, 1}
-    };
+        {0, 0, 0, 1}};
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, color);

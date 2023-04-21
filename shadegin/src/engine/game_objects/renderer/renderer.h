@@ -22,14 +22,14 @@ struct Renderer
     void *derived;
 
     /**
-     * Objects color (RGBA)
+     * Local position to game object
      */
-    vec4 color;
+    vec3 position;
 
     /**
-     * Renders the Game Object with 
+     * Renders the Game Object with
      */
-    void (*Render)(Renderer *);
+    void (*Render)(Renderer *, vec3);
     vec3 *(*Size)(Renderer *);
     void (*Delete)(Renderer *);
 };
@@ -37,9 +37,7 @@ struct Renderer
 struct ARenderer
 {
     /**
-     * Create game object
-     *
-     * Can have different collider and renderer types
+     * TODO:
      */
     Renderer *(*Init)();
     Renderer *(*InitBox)(vec3 position, vec3 size);

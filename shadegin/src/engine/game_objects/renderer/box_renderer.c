@@ -20,15 +20,20 @@ static void Delete(Renderer *renderer)
 
 static vec3 *Size(Renderer *renderer)
 {
-    return NULL;
-    // return renderer->derived->size;
+    if (renderer == NULL || renderer->derived == NULL)
+    {
+        return NULL;
+    }
+
+    BoxRenderer *derived_renderer = (BoxRenderer *)renderer->derived;
+    return &derived_renderer->size;
 }
 
-static void Render(Renderer *renderer)
+static void Render(Renderer *renderer, vec3 position)
 {
-    vec3 world_position = {50, 50, 0};
-    // vec3_add(world_position, renderer->derived->position, renderer->position);
-    render_square(world_position, (vec3){50, 50, 50}, (vec4){0, 1, 1, 1}, true);
+    vec3 world_position = {0, 0, 0};
+    vec3_add(world_position, position, renderer->position);
+    render_square(world_position, *renderer->Size(renderer), (vec4){0, 0, 0, 0}, true); // TODO: color
 }
 
 static Renderer *Init(Renderer *renderer, vec3 position, vec3 size)
@@ -40,13 +45,11 @@ static Renderer *Init(Renderer *renderer, vec3 position, vec3 size)
         renderer->Delete(renderer);
         return NULL; // TODO: error exit
     }
-    renderer->derived = box_renderer;
-    memcpy(renderer->color, (vec4){1, 1, 1, 1}, sizeof(renderer->color));
-    // renderer->color = {1, 1, 1, 1};
-    box_renderer->parent = renderer;
 
-    // box_renderer->size = size;
-    // box_renderer->position = position;
+    renderer->derived = box_renderer;
+
+    box_renderer->parent = renderer;
+    memcpy(box_renderer->size, size, sizeof(vec3));
 
     renderer->Render = Render;
     renderer->Size = Size;

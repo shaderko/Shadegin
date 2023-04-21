@@ -27,12 +27,6 @@ struct BoxRenderer
      * Vector 3 size of Box Renderer
      */
     vec3 size;
-
-    /**
-     * Local position to game object
-     * TODO:
-     */
-    vec3 position;
 };
 
 struct ABoxRenderer

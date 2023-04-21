@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
 
     // GameObject *object = AGameObject->Init();
-    GameObject *object1 = AGameObject->InitBox(10, 10, 10);
+    GameObject *object1 = AGameObject->InitBox(false, 1.0, (vec3){10, 10, 10}, (vec3){50, 50, 50});
 
     bool running = true;
     bool mouse_down = false;
@@ -49,6 +49,20 @@ int main(int argc, char *argv[])
             case SDL_MOUSEBUTTONDOWN:
                 printf("MOUSE DOWN %i\n", !mouse_down);
                 mouse_down = !mouse_down;
+            case SDL_MOUSEWHEEL:
+                printf("mouse wheel\n");
+                if (event.wheel.y > 0) // scroll up
+                {
+                    printf("mouse wheel up\n");
+                    camera->distance -= 10;
+                    render_update_projection(camera);
+                }
+                else if (event.wheel.y < 0) // scroll down
+                {
+                    printf("mouse wheel down\n");
+                    camera->distance += 10;
+                    render_update_projection(camera);
+                }
             default:
                 break;
             }
@@ -67,15 +81,17 @@ int main(int argc, char *argv[])
         // simulate_gravity(-.001);
         camera_update_position((vec3){mouseX, mouseY, 0});
 
+        AGameObject->Update(object1);
+
         // move_player((vec2){mouseX + camera->position[0] - global.render.width / 2, mouseY + camera->position[1] - global.render.height / 2});
 
         render_begin();
 
         // render_begin_pixelated();
 
-        object1->renderer->Render(object1->renderer);
-        render_square((vec3){100, 100, 0}, (vec3){50, 50, 50}, (vec4){1, 1, 0, 1}, true);
-        // render_quad((vec3){mouseX, mouseY, 0}, (vec3){500, 500, 50}, (vec4){1, 1, 1, 1}, true);
+        // object1->renderer->Render(object1->renderer);
+        AGameObject->Render(object1);
+        // render_square((vec3){100, 100, 0}, (vec3){50, 50, 50}, (vec4){1, 1, 0, 1}, true);
         // render_game_objects();
         // render_collider(object1);
         // render_player();

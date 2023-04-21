@@ -11,7 +11,8 @@
 #include "../types.h"
 #include "camera.h"
 
-typedef struct render_state {
+typedef struct render_state
+{
     SDL_Window *window;
     f32 width;
     f32 height;
@@ -20,11 +21,12 @@ typedef struct render_state {
 } Render_State;
 
 void render_init(void);
-void render_shaders(Camera* camera);
+void render_shaders(Camera *camera);
 void render_begin(void);
 void render_begin_pixelated(void);
 void render_end(void);
 void render_end_pixelated(void);
+void render_update_projection(Camera *camera);
 void render_light(vec3 position);
 void render_quad(vec3 pos, vec3 size, vec4 color, bool fill);
 void render_square(vec3 pos, vec3 size, vec4 color, bool fill);

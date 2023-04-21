@@ -23,16 +23,12 @@ struct GameObject
     /**
      * Vector 3 position of object in world space
      */
-    float position_x;
-    float position_y;
-    float position_z;
+    vec3 position;
 
     /**
      * Vector 3 velocity in each direction
      */
-    float velocity_x;
-    float velocity_y;
-    float velocity_z;
+    vec3 velocity;
 
     /**
      * Mass represents the speed at which object falls,
@@ -68,12 +64,12 @@ struct AGameObject
     /**
      * Create a game object box
      */
-    GameObject *(*InitBox)(float width, float height, float depth);
+    GameObject *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
 
     /**
-     * Create a game sphere
+     * Render game object in position of game object with the local position of renderer
      */
-    GameObject *(*InitSphere)(float radius);
+    void (*Render)(GameObject *object);
 
     /**
      * Updates the position of game object with game objects velocity

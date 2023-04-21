@@ -11,10 +11,6 @@
 
 #include "collider.h"
 #include "../../util.h"
-
-/**
- * Add colliders
- */
 #include "box_collider.h"
 
 static void Delete(Collider *collider)
@@ -29,12 +25,13 @@ static Collider *Init()
     {
         ERROR_EXIT("error allocating memory for collider.");
     }
+    memcpy(collider->position, (vec3){0, 0, 0}, sizeof(vec3));
     collider->Delete = Delete;
 
     return collider;
 }
 
-static Collider *InitBox(float width, float height, float depth)
+static Collider *InitBox(vec3 position, vec3 size)
 {
     Collider *collider = malloc(sizeof(Collider));
     if (!collider)
@@ -42,7 +39,8 @@ static Collider *InitBox(float width, float height, float depth)
         ERROR_EXIT("error allocating memory for collider.");
     }
 
-    ABoxCollider->Init(collider, width, height, depth);
+    memcpy(collider->position, position, sizeof(vec3));
+    ABoxCollider->Init(collider, size);
 
     return collider;
 }

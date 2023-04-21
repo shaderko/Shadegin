@@ -25,7 +25,7 @@ static void Delete(Collider *collider)
     free(collider);
 }
 
-static Collider *Init(Collider *collider, float width, float height, float depth)
+static Collider *Init(Collider *collider, vec3 size)
 {
     BoxCollider *box_collider;
     box_collider = malloc(sizeof(BoxCollider));
@@ -37,9 +37,7 @@ static Collider *Init(Collider *collider, float width, float height, float depth
     collider->derived = box_collider;
     box_collider->parent = collider;
 
-    box_collider->width = width;
-    box_collider->height = height;
-    box_collider->depth = depth;
+    memcpy(box_collider->size, size, sizeof(vec3));
 
     collider->Collide = Collide;
     collider->Delete = Delete;

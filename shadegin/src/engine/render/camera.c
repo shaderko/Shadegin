@@ -34,7 +34,7 @@ void camera_update_view() {
 
 void camera_follow_target() {
     if (camera->target) {
-        camera_update_position((vec3){camera->target->position_x, camera->target->position_y, camera->target->position_z});
+        camera_update_position(camera->target->position);
     }
 }
 

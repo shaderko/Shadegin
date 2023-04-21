@@ -14,6 +14,7 @@
 
 #include "collider.h"
 #include <stdbool.h>
+#include <linmath.h>
 
 typedef struct BoxCollider BoxCollider;
 struct BoxCollider
@@ -26,14 +27,7 @@ struct BoxCollider
     /**
      * Vector 3 size of Box Collider
      */
-    float width;
-    float height;
-    float depth;
-
-    /**
-     * Local position to game object
-     * TODO:
-     */
+    vec3 size;
 };
 
 struct ABoxCollider
@@ -43,7 +37,7 @@ struct ABoxCollider
      *
      * Can have different collider and renderer types
      */
-    Collider *(*Init)(Collider *collider, float width, float height, float depth);
+    Collider *(*Init)(Collider *collider, vec3 size);
 };
 
 extern struct ABoxCollider ABoxCollider[1];

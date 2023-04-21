@@ -12,17 +12,12 @@
 #ifndef COLLIDER_H
 #define COLLIDER_H
 
+#include <linmath.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
 typedef struct Collider Collider;
-
-/**
- * Function pointer definition for different collider types
- */
-typedef bool (*ptrCollide)(Collider *);
-typedef void (*ptrDelete)(Collider *);
 
 struct Collider
 {
@@ -31,19 +26,22 @@ struct Collider
      */
     void *derived;
 
-    ptrCollide Collide;
-    ptrDelete Delete;
+    /**
+     * Local position to game object
+     */
+    vec3 position;
+
+    bool (*Collide)(Collider *);
+    void (*Delete)(Collider *);
 };
 
 struct ACollider
 {
     /**
-     * Create game object
-     *
-     * Can have different collider and renderer types
+     * TODO:
      */
     Collider *(*Init)();
-    Collider *(*InitBox)(float width, float height, float depth);
+    Collider *(*InitBox)(vec3 position, vec3 size);
 };
 
 extern struct ACollider ACollider[1];
