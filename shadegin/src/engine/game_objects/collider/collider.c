@@ -10,14 +10,19 @@
  */
 
 #include "collider.h"
-#include "../util.h"
+#include "../../util.h"
+
+/**
+ * Add colliders
+ */
+#include "box_collider.h"
 
 static void Delete(Collider *collider)
 {
     free(collider);
 }
 
-Collider *create_collider()
+static Collider *Init()
 {
     Collider *collider = malloc(sizeof(Collider));
     if (!collider)
@@ -28,6 +33,23 @@ Collider *create_collider()
 
     return collider;
 }
+
+static Collider *InitBox(float width, float height, float depth)
+{
+    Collider *collider = malloc(sizeof(Collider));
+    if (!collider)
+    {
+        ERROR_EXIT("error allocating memory for collider.");
+    }
+
+    ABoxCollider->Init(collider, width, height, depth);
+
+    return collider;
+}
+
+struct ACollider ACollider[1] =
+    {{Init,
+      InitBox}};
 
 // static bool check_collision_square_square(GameObject *object1, GameObject *object2) {
 //     SquareCollider square1 = object1->collider->data.square;

@@ -4,9 +4,9 @@
  * @brief Box collider used by Collider class
  * @version 0.1
  * @date 2023-04-17
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #ifndef BOX_COLLIDER_H
@@ -21,7 +21,7 @@ struct BoxCollider
     /**
      * Collider class, parent to Box Collider
      */
-    Collider* parent;
+    Collider *parent;
 
     /**
      * Vector 3 size of Box Collider
@@ -29,16 +29,21 @@ struct BoxCollider
     float width;
     float height;
     float depth;
+
+    /**
+     * Local position to game object
+     * TODO:
+     */
 };
 
 struct ABoxCollider
 {
     /**
      * Create game object
-     * 
+     *
      * Can have different collider and renderer types
      */
-    Collider* (*Init)   (float width, float height, float depth);
+    Collider *(*Init)(Collider *collider, float width, float height, float depth);
 };
 
 extern struct ABoxCollider ABoxCollider[1];

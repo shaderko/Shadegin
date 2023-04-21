@@ -8,7 +8,8 @@
 #include "render_internal.h"
 #include "camera.h"
 
-SDL_Window *render_init_window(u32 width, u32 height) {
+SDL_Window *render_init_window(u32 width, u32 height)
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         ERROR_EXIT("couldn't initialize SDL: %s\n", SDL_GetError());
@@ -33,7 +34,8 @@ SDL_Window *render_init_window(u32 width, u32 height) {
         ERROR_EXIT("window creation failed: %s\n", SDL_GetError());
     }
 
-    if (SDL_GL_CreateContext(window) == NULL) {
+    if (SDL_GL_CreateContext(window) == NULL)
+    {
         ERROR_EXIT("failed to create window: %s\n", SDL_GetError());
     }
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
@@ -50,12 +52,13 @@ SDL_Window *render_init_window(u32 width, u32 height) {
     return window;
 }
 
-void render_init_shaders(Render_State_Internal *state) {
+void render_init_shaders(Render_State_Internal *state)
+{
     state->shader_default = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
     state->shader_screen = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
 
     camera_init(100, 100, (vec3){0, 1, 2}, NULL);
-    Camera* camera = get_camera();
+    Camera *camera = get_camera();
 
     float aspect_ratio = (float)global.render.width / (float)global.render.height;
     mat4x4_ortho(state->projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, 1.0f, 100000.0f);
@@ -65,7 +68,8 @@ void render_init_shaders(Render_State_Internal *state) {
     glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "projection"), 1, GL_FALSE, &state->projection[0][0]);
 }
 
-void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
+void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo)
+{
     glGenTextures(1, color);
     glBindTexture(GL_TEXTURE_2D, *color);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, global.render.width, global.render.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -83,7 +87,8 @@ void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *depth);
 
     // Check if FBO creation was successful
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
         printf("Error: Framebuffer is not complete!\n");
         // TODO:
     }
@@ -91,7 +96,8 @@ void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void render_init_color_texture(u32 *texture) {
+void render_init_color_texture(u32 *texture)
+{
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
 
@@ -101,14 +107,14 @@ void render_init_color_texture(u32 *texture) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void render_init_screen(u32 *vao, u32 *vbo) {
+void render_init_screen(u32 *vao, u32 *vbo)
+{
     f32 quadVertices[] = {
         // Positions    // Texture Coords
-        -1.0f,  1.0f,     0.0f, 1.0f,
-        -1.0f, -1.0f,     0.0f, 0.0f,
-         1.0f,  1.0f,     1.0f, 1.0f,
-         1.0f, -1.0f,     1.0f, 0.0f
-    };
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 0.0f};
 
     glGenVertexArrays(1, vao);
     glGenBuffers(1, vbo);
@@ -118,24 +124,40 @@ void render_init_screen(u32 *vao, u32 *vbo) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void*)(2 * sizeof(f32)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)(2 * sizeof(f32)));
 }
 
-void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
+void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo)
+{
     f32 vertices[] = {
-        0.5,  0.5,  0, 0, 0,
-        0.5,  -0.5, 0, 0, 1,
-        -0.5, -0.5, 0, 1, 1,
-        -0.5, 0.5,  0, 1, 0,
+        0.5,
+        0.5,
+        0,
+        0,
+        0,
+        0.5,
+        -0.5,
+        0,
+        0,
+        1,
+        -0.5,
+        -0.5,
+        0,
+        1,
+        1,
+        -0.5,
+        0.5,
+        0,
+        1,
+        0,
     };
 
     u32 indices[] = {
         0, 1, 3,
-        1, 2, 3
-    };
+        1, 2, 3};
 
     glGenVertexArrays(1, vao);
     glGenBuffers(1, vbo);
@@ -152,62 +174,62 @@ void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), NULL);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void *)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
 }
 
-void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {
+void render_init_square(u32 *vao, u32 *vbo, u32 *ebo)
+{
     f32 vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-    };
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f};
 
     u32 indices[] = {
-        0, 1, 2, 3, 4, 5,         // Front face
-        6, 7, 8, 9, 10, 11,       // Back face
-        12, 13, 14, 15, 16, 17,   // Left face
-        18, 19, 20, 21, 22, 23,   // Right face
-        24, 25, 26, 27, 28, 29,   // Bottom face
-        30, 31, 32, 33, 34, 35    // Top face
+        0, 1, 2, 3, 4, 5,       // Front face
+        6, 7, 8, 9, 10, 11,     // Back face
+        12, 13, 14, 15, 16, 17, // Left face
+        18, 19, 20, 21, 22, 23, // Right face
+        24, 25, 26, 27, 28, 29, // Bottom face
+        30, 31, 32, 33, 34, 35  // Top face
     };
 
     glGenVertexArrays(1, vao);
@@ -225,11 +247,12 @@ void render_init_square(u32 *vao, u32 *vbo, u32 *ebo) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), NULL);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void*)(3 * sizeof(f32)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), (void *)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
 }
 
-void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo) {
+void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo)
+{
     glGenVertexArrays(1, vao);
     glGenBuffers(1, vbo);
     glGenBuffers(1, ebo);
@@ -243,14 +266,14 @@ void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), NULL);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void *)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
 }
 
-void render_init_line(u32 *vao, u32 *vbo, u32 *ebo) {
+void render_init_line(u32 *vao, u32 *vbo, u32 *ebo)
+{
     u32 indices[] = {
-        0, 1
-    };
+        0, 1};
 
     glGenVertexArrays(1, vao);
     glGenBuffers(1, vbo);

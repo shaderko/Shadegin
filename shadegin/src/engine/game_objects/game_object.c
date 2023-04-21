@@ -9,7 +9,8 @@
  */
 
 #include "game_object.h"
-#include "box_collider.h"
+#include "collider/collider.h"
+#include "renderer/renderer.h"
 
 static GameObject *Init()
 {
@@ -20,14 +21,15 @@ static GameObject *Init()
     return object;
 }
 
-GameObject *InitBox(float width, float height, float depth)
+static GameObject *InitBox(float width, float height, float depth)
 {
     GameObject *object = Init();
-    object->collider = ABoxCollider->Init(width, height, depth);
+    object->collider = ACollider->InitBox(width, height, depth);
+    object->renderer = ARenderer->InitBox((vec3){0, 0, 0}, (vec3){width, height, depth});
     return object;
 }
 
-GameObject *InitSphere(float radius)
+static GameObject *InitSphere(float radius)
 {
     // object->collider = ABoxCollider->Init(10, 10, 10);
     return Init();

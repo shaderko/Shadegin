@@ -25,11 +25,9 @@ static void Delete(Collider *collider)
     free(collider);
 }
 
-Collider *Init(float width, float height, float depth)
+static Collider *Init(Collider *collider, float width, float height, float depth)
 {
     BoxCollider *box_collider;
-    Collider *collider = create_collider();
-
     box_collider = malloc(sizeof(BoxCollider));
     if (box_collider == NULL)
     {

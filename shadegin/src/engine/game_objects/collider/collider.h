@@ -12,6 +12,7 @@
 #ifndef COLLIDER_H
 #define COLLIDER_H
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
@@ -34,6 +35,17 @@ struct Collider
     ptrDelete Delete;
 };
 
-Collider *create_collider();
+struct ACollider
+{
+    /**
+     * Create game object
+     *
+     * Can have different collider and renderer types
+     */
+    Collider *(*Init)();
+    Collider *(*InitBox)(float width, float height, float depth);
+};
+
+extern struct ACollider ACollider[1];
 
 #endif
