@@ -29,6 +29,7 @@ static Renderer *Init()
     {
         ERROR_EXIT("error allocating memory for collider.");
     }
+    memcpy(renderer->color, (vec4){0, 0, 0, 1}, sizeof(vec4));
     renderer->Delete = Delete;
 
     return renderer;

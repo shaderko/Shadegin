@@ -26,7 +26,10 @@ struct Renderer
      */
     vec4 color;
 
-    void (*Render)(Renderer *, vec3);
+    /**
+     * Renders the Game Object with 
+     */
+    void (*Render)(Renderer *);
     vec3 *(*Size)(Renderer *);
     void (*Delete)(Renderer *);
 };

@@ -24,11 +24,11 @@ static vec3 *Size(Renderer *renderer)
     // return renderer->derived->size;
 }
 
-static void Render(Renderer *renderer, vec3 position)
+static void Render(Renderer *renderer)
 {
-    vec3 world_position = {50, 50, 50};
+    vec3 world_position = {50, 50, 0};
     // vec3_add(world_position, renderer->derived->position, renderer->position);
-    render_quad(world_position, (vec3){50, 50, 50}, renderer->color, true);
+    render_square(world_position, (vec3){50, 50, 50}, (vec4){0, 1, 1, 1}, true);
 }
 
 static Renderer *Init(Renderer *renderer, vec3 position, vec3 size)
