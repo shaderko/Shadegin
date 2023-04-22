@@ -68,7 +68,7 @@ static void RenderGameObjects()
 
 static void ApplyGravity(GameObject *object)
 {
-    object->velocity[1] += -.01;
+    object->velocity[1] += -.0001;
 }
 
 static void Update(GameObject *object)

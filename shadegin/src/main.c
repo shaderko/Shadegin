@@ -12,6 +12,7 @@
 // #include "../game_files/player.h"
 // #include "../game_files/walls/wall.h"
 #include "engine/game_objects/game_object.h"
+#include "engine/networking/client.h"
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +32,8 @@ int main(int argc, char *argv[])
     AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
 
     object->renderer->position[0] += 50;
+
+    AClient->Init();
 
     bool running = true;
     bool mouse_down = false;
