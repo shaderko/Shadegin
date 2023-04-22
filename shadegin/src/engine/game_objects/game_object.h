@@ -70,11 +70,13 @@ struct AGameObject
      * Render game object in position of game object with the local position of renderer
      */
     void (*Render)(GameObject *object);
+    void (*RenderGameObjects)();
 
     /**
      * Updates the position of game object with game objects velocity
      */
     void (*Update)(GameObject *object);
+    void (*UpdateGameObjects)();
 };
 
 extern struct AGameObject AGameObject[1];

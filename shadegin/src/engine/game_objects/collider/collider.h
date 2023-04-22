@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+typedef struct GameObject GameObject;
 typedef struct Collider Collider;
 
 struct Collider
@@ -31,7 +32,7 @@ struct Collider
      */
     vec3 position;
 
-    bool (*Collide)(Collider *);
+    bool (*Collide)(GameObject *, GameObject *);
     void (*Delete)(Collider *);
 };
 

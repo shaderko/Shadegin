@@ -1,7 +1,7 @@
 /**
  * @file box_renderer.c
  * @author https://github.com/shaderko
- * @brief TODO:
+ * @brief Used for rendering a 3D box
  * @version 0.1
  * @date 2023-04-19
  *
@@ -36,7 +36,7 @@ static void Render(Renderer *renderer, vec3 position)
     render_square(world_position, *renderer->Size(renderer), (vec4){0, 0, 0, 0}, true); // TODO: color
 }
 
-static Renderer *Init(Renderer *renderer, vec3 position, vec3 size)
+static Renderer *Init(Renderer *renderer, vec3 size)
 {
     BoxRenderer *box_renderer;
     box_renderer = malloc(sizeof(BoxRenderer));

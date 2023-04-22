@@ -34,7 +34,7 @@ struct ABoxRenderer
     /**
      * TODO:
      */
-    Renderer *(*Init)(Renderer *renderer, vec3 position, vec3 size);
+    Renderer *(*Init)(Renderer *renderer, vec3 size);
 };
 
 extern struct ABoxRenderer ABoxRenderer[1];

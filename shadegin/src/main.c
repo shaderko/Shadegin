@@ -26,7 +26,11 @@ int main(int argc, char *argv[])
     // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
 
     // GameObject *object = AGameObject->Init();
-    GameObject *object1 = AGameObject->InitBox(false, 1.0, (vec3){10, 10, 10}, (vec3){50, 50, 50});
+    AGameObject->InitBox(false, 1.0, (vec3){10, 300, 10}, (vec3){50, 50, 50});
+    GameObject *object = AGameObject->InitBox(false, 1.0, (vec3){60, 400, 10}, (vec3){50, 50, 50});
+    AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
+
+    object->renderer->position[0] += 50;
 
     bool running = true;
     bool mouse_down = false;
@@ -71,33 +75,18 @@ int main(int argc, char *argv[])
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
-        // object1->position[2] = MIN_DEPTH_VALUE * mouseY;
-        // if (mouse_down) {
+
         // camera_follow_target();
-        // mouse_down = false;
-        // }
-        // printf("%f\n", object1->position[2]);
 
-        // simulate_gravity(-.001);
-        camera_update_position((vec3){mouseX, mouseY, 0});
-
-        AGameObject->Update(object1);
-
-        // move_player((vec2){mouseX + camera->position[0] - global.render.width / 2, mouseY + camera->position[1] - global.render.height / 2});
+        camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
+        AGameObject->UpdateGameObjects();
 
         render_begin();
+        render_begin_pixelated();
 
-        // render_begin_pixelated();
+        AGameObject->RenderGameObjects();
 
-        // object1->renderer->Render(object1->renderer);
-        AGameObject->Render(object1);
-        // render_square((vec3){100, 100, 0}, (vec3){50, 50, 50}, (vec4){1, 1, 0, 1}, true);
-        // render_game_objects();
-        // render_collider(object1);
-        // render_player();
-
-        // render_end_pixelated();
-        // render_walls();
+        render_end_pixelated();
 
         render_light((vec3){mouseX, mouseY, 55});
 

@@ -12,9 +12,21 @@
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 
+static GameObject **GameObjectsArray = NULL;
+static size_t GameObjectsSize = 0;
+
 static GameObject *Init()
 {
     GameObject *object = malloc(sizeof(GameObject));
+    if (object == NULL)
+    {
+        // TODO: error
+        return NULL;
+    }
+
+    GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
+    GameObjectsArray[GameObjectsSize] = object;
+    GameObjectsSize++;
 
     return object;
 }
@@ -46,6 +58,14 @@ static void Render(GameObject *object)
     object->renderer->Render(object->renderer, object->position);
 }
 
+static void RenderGameObjects()
+{
+    for (int x = 0; x < GameObjectsSize; x++)
+    {
+        Render(GameObjectsArray[x]);
+    }
+}
+
 static void ApplyGravity(GameObject *object)
 {
     object->velocity[1] += -.01;
@@ -53,9 +73,17 @@ static void ApplyGravity(GameObject *object)
 
 static void Update(GameObject *object)
 {
-    if (object->is_static || object->collider->Collide(object->collider))
+    if (object->is_static)
     {
         return;
+    }
+
+    for (int i = 0; i < GameObjectsSize; i++)
+    {
+        if (object->collider->Collide(object, GameObjectsArray[i]))
+        {
+            return;
+        }
     }
 
     ApplyGravity(object);
@@ -65,8 +93,18 @@ static void Update(GameObject *object)
     object->position[2] += object->velocity[2];
 }
 
+static void UpdateGameObjects()
+{
+    for (int x = 0; x < GameObjectsSize; x++)
+    {
+        Update(GameObjectsArray[x]);
+    }
+}
+
 struct AGameObject AGameObject[1] =
     {{Init,
       InitBox,
       Render,
-      Update}};
+      RenderGameObjects,
+      Update,
+      UpdateGameObjects}};

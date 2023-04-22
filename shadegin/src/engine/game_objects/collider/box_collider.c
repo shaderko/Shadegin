@@ -11,10 +11,41 @@
 
 #include <stdlib.h>
 #include "box_collider.h"
+#include "../game_object.h"
 
-static bool Collide(Collider *collider)
+static bool Collide(GameObject *object1, GameObject *object2)
 {
-    return false;
+    if (object1 == object2)
+    {
+        return false;
+    }
+    BoxCollider *square1 = (BoxCollider *)object1->collider->derived;
+    BoxCollider *square2 = (BoxCollider *)object2->collider->derived;
+
+    vec3 pos1;
+    vec3 pos2;
+    vec3_add(pos1, object1->position, object1->collider->position);
+    vec3_add(pos2, object2->position, object2->collider->position);
+
+    // Calculate the half-width and half-height for both squares
+    float half_width1 = square1->size[0] / 2.0f;
+    float half_height1 = square1->size[1] / 2.0f;
+    float half_depth1 = square1->size[2] / 2.0f;
+
+    float half_width2 = square2->size[0] / 2.0f;
+    float half_height2 = square2->size[1] / 2.0f;
+    float half_depth2 = square2->size[2] / 2.0f;
+
+    // Check if the squares are overlapping along the x-axis
+    bool overlap_x = fabs(pos1[0] - pos2[0]) < (half_width1 + half_width2);
+
+    // Check if the squares are overlapping along the y-axis
+    bool overlap_y = fabs(pos1[1] - pos2[1]) < (half_height1 + half_height2);
+
+    bool overlap_z = fabs(pos1[2] - pos2[2]) < (half_depth1 + half_depth2);
+
+    // If the squares are overlapping along both the x and y axes, they are colliding
+    return overlap_x && overlap_y && overlap_z;
 }
 
 static void Delete(Collider *collider)

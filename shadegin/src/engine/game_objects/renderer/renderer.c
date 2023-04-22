@@ -25,7 +25,7 @@ static Renderer *Init()
     {
         ERROR_EXIT("error allocating memory for collider.");
     }
-    memcpy(renderer->position, (vec3){0, 0, 0}, sizeof(vec3));
+
     renderer->Delete = Delete;
 
     return renderer;
@@ -39,7 +39,8 @@ static Renderer *InitBox(vec3 position, vec3 size)
         ERROR_EXIT("error allocating memory for dlider.");
     }
 
-    ABoxRenderer->Init(renderer, position, size);
+    memcpy(renderer->position, position, sizeof(vec3));
+    ABoxRenderer->Init(renderer, size);
 
     return renderer;
 }
