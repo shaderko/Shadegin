@@ -9,7 +9,7 @@ static Server *Init()
         return NULL;
     }
 
-    if (SDLNet_ResolveHost(&server->ip, NULL, 1234) == -1)
+    if (SDLNet_ResolveHost(&server->ip, NULL, 27027) == -1)
     {
         printf("Error resolving server host: %s\n", SDLNet_GetError());
         return NULL;

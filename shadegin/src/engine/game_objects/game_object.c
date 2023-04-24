@@ -8,9 +8,13 @@
  *
  */
 
+#include "../util.h"
 #include "game_object.h"
 #include "collider/collider.h"
 #include "renderer/renderer.h"
+
+#include <stdio.h>
+#include <time.h>
 
 static GameObject **GameObjectsArray = NULL;
 static size_t GameObjectsSize = 0;
@@ -23,6 +27,8 @@ static GameObject *Init()
         // TODO: error
         return NULL;
     }
+    object->id = generate_random_id();
+    printf("created object with id %d\n", object->id);
 
     GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
     GameObjectsArray[GameObjectsSize] = object;

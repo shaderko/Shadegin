@@ -17,9 +17,27 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+typedef struct SerializedGameObject SerializedGameObject;
+struct SerializedGameObject
+{
+    int id;
+    vec3 position;
+    vec3 velocity;
+    float mass;
+    bool is_static;
+    ColliderType collider_type;
+    vec3 collider_position;
+    vec3 collider_size;
+    RendererType renderer_type;
+    vec3 renderer_position;
+    vec3 renderer_size;
+};
+
 typedef struct GameObject GameObject;
 struct GameObject
 {
+    int id;
+
     /**
      * Vector 3 position of object in world space
      */

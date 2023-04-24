@@ -12,11 +12,16 @@
 // #include "../game_files/player.h"
 // #include "../game_files/walls/wall.h"
 #include "engine/game_objects/game_object.h"
+// #include "engine/networking/server.h"
 #include "engine/networking/client.h"
 
 int main(int argc, char *argv[])
 {
+
     render_init();
+
+    // Server *server = AServer->Init();
+    // AServer->Loop(server);
 
     thread_pool_init(8, 5000);
 
@@ -31,7 +36,7 @@ int main(int argc, char *argv[])
     GameObject *object = AGameObject->InitBox(false, 1.0, (vec3){60, 400, 10}, (vec3){50, 50, 50});
     AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
 
-    object->renderer->position[0] += 50;
+    // object->renderer->position[0] += 50;
 
     AClient->Init();
 

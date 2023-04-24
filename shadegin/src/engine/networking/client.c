@@ -3,7 +3,7 @@
 static Client *Init()
 {
     Client *client = malloc(sizeof(Client));
-    if (SDLNet_ResolveHost(&client->ip, "127.0.0.1", 1234) == -1)
+    if (SDLNet_ResolveHost(&client->ip, "127.0.0.1", 27027) == -1)
     {
         printf("Error resolving server host: %s\n", SDLNet_GetError());
         return NULL;
