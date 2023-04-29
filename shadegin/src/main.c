@@ -17,26 +17,29 @@
 
 int main(int argc, char *argv[])
 {
+    bool is_server = false;
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-s") == 0)
+        {
+            is_server = true;
+        }
+    }
+
+    if (is_server)
+    {
+        AServer->Init();
+        return;
+    }
+
     render_init();
-
-    // thread_pool_init(8, 5000);
-
-    // AGameObject->InitBox(false, 1.0, (vec3){10, 300, 10}, (vec3){50, 50, 50});
-    GameObject *object = AGameObject->InitBox(false, 1.0, (vec3){60, 400, 10}, (vec3){50, 50, 50});
-    // AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
-
-    AServer->Init();
-
-    // object->renderer->position[0] += 50;
 
     Client *client = AClient->Init();
 
     bool running = true;
     bool mouse_down = false;
 
-    // player_init((vec2){0, 0}, .1);
     Camera *camera = get_camera();
-    // camera->target = get_player();
 
     while (running)
     {
@@ -125,8 +128,6 @@ int main(int argc, char *argv[])
             // printf("FPS: %.2f\n", fps);
         }
     }
-
-    // thread_pool_cleanup();
 
     return 0;
 }

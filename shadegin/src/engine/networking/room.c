@@ -9,8 +9,9 @@
  *
  */
 
-#include "../util.h"
+#include <stdbool.h>
 
+#include "../util.h"
 #include "room.h"
 #include "server.h"
 
@@ -22,6 +23,8 @@ static Room *Init(Server *server)
         ERROR_EXIT("Error allocating space for room\n");
     }
 
+    room->server = server;
+    room->is_active = true;
     room->clients = NULL;
     room->clients_size = 0;
     room->room_id = generate_random_id();
@@ -35,7 +38,45 @@ static Room *Init(Server *server)
     server->rooms[server->rooms_size] = room;
     server->rooms_size++;
 
+    room->thread = SDL_CreateThread(RoomGame, "Thread", room);
+
     return room;
+}
+
+static void DeleteRoom(Room *room)
+{
+    for (int i = 0; i < room->clients_size; i++)
+    {
+        room->clients[i]->room = NULL;
+    }
+
+    for (int i = 0; i < room->server->rooms_size; i++)
+    {
+        if (room->server->rooms[i]->room_id == room->room_id)
+        {
+            room->server->rooms_size--;
+            if (room->server->rooms_size <= 0)
+            {
+                break;
+            }
+            room->server->rooms[i] = room->server->rooms[room->server->rooms_size];
+            break;
+        }
+    }
+    free(room);
+}
+
+static void RoomGame(Room *room)
+{
+    // Create map
+
+    while (room->is_active)
+    {
+        // All game updates
+    }
+
+    ARoom->DeleteRoom(room);
+    SDL_DetachThread(room->thread);
 }
 
 /**
@@ -74,4 +115,4 @@ static void RemoveClient(Room *room, ServerClient *client)
     }
 }
 
-struct ARoom ARoom[1] = {{Init, GetRoom, RemoveClient}};
+struct ARoom ARoom[1] = {{Init, DeleteRoom, RoomGame, GetRoom, RemoveClient}};

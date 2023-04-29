@@ -12,6 +12,7 @@
 #ifndef ROOM_H
 #define ROOM_H
 
+#include <stdbool.h>
 #include "SDL2/SDL_net.h"
 
 typedef struct ServerClient ServerClient;
@@ -23,11 +24,16 @@ typedef struct Server Server;
 
 typedef struct Room
 {
+    Server *server;
+
     /**
      * All connected clients to the current game room (lobby)
      */
     ServerClient **clients;
     int clients_size;
+
+    bool is_active;
+    SDL_Thread *thread;
 
     /**
      * Uniquely generated id for every room
@@ -41,6 +47,10 @@ struct ARoom
      * Create a room and add it to server list of games
      */
     Room *(*Init)(Server *server);
+
+    void (*DeleteRoom)(Room *room);
+
+    void (*RoomGame)(Room *room);
 
     /**
      * Get room with room id

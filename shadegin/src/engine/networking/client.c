@@ -3,6 +3,11 @@
 
 static Client *Init()
 {
+    if (SDLNet_Init() != 0)
+    {
+        ERROR_EXIT("Error initializing SDL_net: %s\n", SDLNet_GetError());
+    }
+
     Client *client = malloc(sizeof(Client));
     if (SDLNet_ResolveHost(&client->ip, "127.0.0.1", 1234) == -1)
     {

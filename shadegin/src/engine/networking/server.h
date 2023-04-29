@@ -25,6 +25,7 @@ enum MessageType
 typedef struct Message Message;
 struct Message
 {
+    int room_id;
     MessageType type;
     int length;
     int *data;
@@ -34,6 +35,7 @@ typedef struct ServerClient ServerClient;
 struct ServerClient
 {
     IPaddress address;
+    Uint32 last_sent;
     Room *room;
 };
 
@@ -53,7 +55,6 @@ struct AServer
 {
     void (*Init)();
     // void (*CheckConnection)(Server *server);
-    void (*DeleteSocket)(Server *server, ServerClient *client, int i);
     void (*ReceiveData)(Server *server, UDPpacket *packet);
 };
 

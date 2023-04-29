@@ -1,7 +1,7 @@
 /**
  * @file server.c
  * @author https://github.com/shaderko
- * @brief
+ * @brief Server is only used to accept connections and assign clients to rooms
  * @version 0.1
  * @date 2023-04-25
  *
@@ -11,48 +11,41 @@
 
 #include "server.h"
 #include "room.h"
-#include "../game_objects/game_object.h"
+#include "../util.h"
 
 static void Init()
 {
+    if (SDLNet_Init() != 0)
+    {
+        ERROR_EXIT("Error initializing SDL_net: %s\n", SDLNet_GetError());
+    }
+
     Server *server = malloc(sizeof(Server));
     if (server == NULL)
     {
-        // TODO: error
-        printf("Server memory couldn't be allocated!\n");
-        return;
+        ERROR_EXIT("Server memory couldn't be allocated!\n");
     }
 
     if (SDLNet_ResolveHost(&server->ip, NULL, 1234) == -1)
     {
-        printf("Error resolving server host: %s\n", SDLNet_GetError());
-        return;
+        ERROR_EXIT("Error resolving server host: %s\n", SDLNet_GetError());
     }
 
     // Opening server
     server->server = SDLNet_UDP_Open(1234);
     if (!server->server)
     {
-        printf("Error opening server socket: %s\n", SDLNet_GetError());
-        return;
-    }
-
-    // Create socket set for all the connected clients
-    server->connections = NULL;
-    server->socket_connections = SDLNet_AllocSocketSet(10);
-    if (server->socket_connections == NULL)
-    {
-        printf("Error allocating memory for socket set\n");
+        ERROR_EXIT("Error opening server socket: %s\n", SDLNet_GetError());
     }
 
     UDPpacket *packet = SDLNet_AllocPacket(512);
     if (!packet)
     {
-        printf("Error allocating UDP packet: %s\n", SDLNet_GetError());
-        return;
+        ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
     }
 
     printf("Server initialized! Receving data.\n");
+
     // Main server loop
     while (1)
     {
@@ -64,38 +57,6 @@ static void Init()
     SDLNet_UDP_Close(server->server);
 }
 
-static void DeleteSocket(Server *server, ServerClient *client, int i)
-{
-    SDLNet_UDP_DelSocket(server->socket_connections, client->socket);
-    SDLNet_UDP_Close(client->socket);
-
-    server->connections[i] = server->connections[server->connections_size - 1];
-    server->connections_size--;
-    printf("Client %d disconnected!\n", i);
-}
-
-static Message *GetMessage(ServerClient *client)
-{
-    int start = SDL_GetTicks();
-
-    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message));
-    if (!packet)
-    {
-        printf("SDLNet_AllocPacket failed: %s\n", SDLNet_GetError());
-        return NULL;
-    }
-
-    Message *message = (Message *)malloc(sizeof(Message));
-    int bytesReceived = 0;
-
-    if (SDLNet_UDP_Recv(client->socket, packet) == 1)
-    {
-        printf("Message bytes received %d\n", packet->len);
-        message = (Message *)packet->data;
-    }
-    return message;
-}
-
 static void ReceiveData(Server *server, UDPpacket *packet)
 {
     if (SDLNet_UDP_Recv(server->server, packet))
@@ -105,98 +66,33 @@ static void ReceiveData(Server *server, UDPpacket *packet)
         Message message;
         memcpy(&message, packet->data, sizeof(Message));
 
-        // Extract the game object data from the packet's data field
-        GameObject gmo;
-        memcpy(&gmo, packet->data + sizeof(Message), sizeof(GameObject));
-        AGameObject->Deserialize(&gmo);
+        // Check if client is in room or wants to join one
+        if (message.room_id == NULL) // If room id is NULL it is keep alive message
+        {
+            // KEEP ALIVE TODO:
+            return;
+        }
 
-        // Process the received data here
-        // You may want to store the client's address for future communication
+        Room *room = ARoom->GetRoom(server, message.room_id);
+        if (message.room_id == 0)
+        {
+            room = ARoom->Init(server);
+        }
+        else if (room == NULL)
+        {
+            // Room doesn't exist send back response error TODO:
+            return;
+        }
 
-        // Send a response to the client
-        // const char *response = "Message received";
-        // memcpy(packet->data, response, strlen(response) + 1);
-        // packet->len = strlen(response) + 1;
-
-        // if (SDLNet_UDP_Send(serverSocket, -1, packet) == 0)
-        // {
-        //     printf("Error sending response: %s\n", SDLNet_GetError());
-        // }
+        for (int i = 0; i < room->clients_size; i++)
+        {
+            if (room->clients[i]->address.host == packet->address.host)
+            {
+                // Found client, assign action to room thread
+            }
+        }
     }
-    //     if (sockets_ready <= 0)
-    //     {
-    //         return;
-    //     }
-
-    //     ServerClient *client = server->connections[i];
-    //     if (!SDLNet_SocketReady(client->socket))
-    //     {
-    //         continue;
-    //     }
-    //     sockets_ready--;
-
-    //     // Receive message
-    //     printf("receiving message from %d\n", i);
-    //     Message *message = GetMessage(client);
-    //     if (message == NULL)
-    //     {
-    //         AServer->DeleteSocket(server, client, i);
-    //         continue;
-    //     }
-
-    //     // Receive data
-    //     message->data = (int *)malloc(message->length);
-    //     int bytesReceived = 0;
-    //     while (bytesReceived < message->length)
-    //     {
-    //         bytesReceived += SDLNet_UDP_Recv(client->socket, message->data + bytesReceived, message->length);
-    //         printf("Data bytes received %d\n", bytesReceived);
-    //     }
-
-    //     int *room_id = NULL;
-    //     GameObject *gmo = NULL;
-
-    //     printf("checking message type\n");
-    //     switch (message->type)
-    //     {
-    //     case ROOM_ID:
-    //         room_id = message->data;
-
-    //         printf("Received room id %d bytes: %i\n", bytesReceived, *room_id);
-    //         printf("joining room %d\n", *room_id);
-
-    //         Room *room = ARoom->GetRoom(server, *room_id);
-    //         if (room == NULL)
-    //         {
-    //             room = ARoom->Init(server);
-    //         }
-
-    //         if (client->room != NULL)
-    //         {
-    //             ARoom->RemoveClient(room, client);
-    //         }
-
-    //         room->clients = realloc(room->clients, (room->clients_size + 1) * sizeof(ServerClient *));
-    //         room->clients[room->clients_size] = client;
-    //         room->clients_size++;
-
-    //         client->room = room;
-
-    //         printf("joined room %d, %d\n", room->room_id, client->room->room_id);
-
-    //         break;
-    //     case GAME_OBJECT:
-    //         gmo = (GameObject *)message->data;
-    //         AGameObject->Deserialize(gmo);
-    //         printf("Received gmo %d bytes: %i\n", bytesReceived, gmo->id);
-    //         break;
-    //     default:
-    //         continue;
-    //     }
-
-    //     // Process received data
-    //     printf("Received %d bytes\n", bytesReceived);
 }
 
 struct AServer AServer[1] =
-    {{Init, DeleteSocket, ReceiveData}};
+    {{Init, ReceiveData}};

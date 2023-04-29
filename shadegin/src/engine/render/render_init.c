@@ -16,11 +16,6 @@ SDL_Window *render_init_window(u32 width, u32 height)
         ERROR_EXIT("couldn't initialize SDL: %s\n", SDL_GetError());
     }
 
-    if (SDLNet_Init() != 0)
-    {
-        ERROR_EXIT("Error initializing SDL_net: %s\n", SDLNet_GetError());
-    }
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -60,8 +55,8 @@ SDL_Window *render_init_window(u32 width, u32 height)
 
 void render_init_shaders(Render_State_Internal *state)
 {
-    state->shader_default = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
-    state->shader_screen = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
+    state->shader_default = render_shader_create_name("./shaders/default");
+    state->shader_screen = render_shader_create_name("./shaders/screen");
 
     camera_init(400, 10, (vec3){0, 0, 0}, NULL);
     Camera *camera = get_camera();
