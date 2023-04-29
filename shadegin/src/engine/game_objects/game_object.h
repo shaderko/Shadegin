@@ -17,21 +17,21 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct SerializedGameObject SerializedGameObject;
-struct SerializedGameObject
-{
-    int id;
-    vec3 position;
-    vec3 velocity;
-    float mass;
-    bool is_static;
-    ColliderType collider_type;
-    vec3 collider_position;
-    vec3 collider_size;
-    RendererType renderer_type;
-    vec3 renderer_position;
-    vec3 renderer_size;
-};
+// typedef struct SerializedGameObject SerializedGameObject;
+// struct SerializedGameObject
+// {
+//     int id;
+//     vec3 position;
+//     vec3 velocity;
+//     float mass;
+//     bool is_static;
+//     ColliderType collider_type;
+//     vec3 collider_position;
+//     vec3 collider_size;
+//     RendererType renderer_type;
+//     vec3 renderer_position;
+//     vec3 renderer_size;
+// };
 
 typedef struct GameObject GameObject;
 struct GameObject
@@ -95,6 +95,13 @@ struct AGameObject
      */
     void (*Update)(GameObject *object);
     void (*UpdateGameObjects)();
+
+    /**
+     * Deserialize network Game Object
+     * Create new one if it doesn't exist
+     * If it does apply all variables
+     */
+    void (*Deserialize)(GameObject *object);
 };
 
 extern struct AGameObject AGameObject[1];

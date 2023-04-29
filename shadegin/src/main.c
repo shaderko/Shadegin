@@ -12,33 +12,24 @@
 // #include "../game_files/player.h"
 // #include "../game_files/walls/wall.h"
 #include "engine/game_objects/game_object.h"
-// #include "engine/networking/server.h"
+#include "engine/networking/server.h"
 #include "engine/networking/client.h"
 
 int main(int argc, char *argv[])
 {
-
     render_init();
 
-    // Server *server = AServer->Init();
-    // AServer->Loop(server);
+    // thread_pool_init(8, 5000);
 
-    thread_pool_init(8, 5000);
-
-    // add_wall((vec3){50, 100, 0}, (vec3){20, 20, 20}, (vec4){1, 1, 1, 1});
-
-    // GameObject* object1 = add_object((vec3){20, 150, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, false, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){25, 25, 25});
-    // add_object((vec3){0, 0}, (vec3){100, 100, 100}, (vec3){0, 0, 0}, 3, true, COLIDER_SQUARE, RENDERER_SQUARE, &(vec3){100, 5, 500});
-    // add_object((vec3){25, 0}, (vec3){25, 25, 25}, (vec3){0, 0, 0}, 3, true, COLIDER_CIRCLE, RENDERER_CIRCLE, &(float){1});
-
-    // GameObject *object = AGameObject->Init();
-    AGameObject->InitBox(false, 1.0, (vec3){10, 300, 10}, (vec3){50, 50, 50});
+    // AGameObject->InitBox(false, 1.0, (vec3){10, 300, 10}, (vec3){50, 50, 50});
     GameObject *object = AGameObject->InitBox(false, 1.0, (vec3){60, 400, 10}, (vec3){50, 50, 50});
-    AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
+    // AGameObject->InitBox(true, 1.0, (vec3){0, 0, 0}, (vec3){100, 50, 50});
+
+    AServer->Init();
 
     // object->renderer->position[0] += 50;
 
-    AClient->Init();
+    Client *client = AClient->Init();
 
     bool running = true;
     bool mouse_down = false;
@@ -49,6 +40,8 @@ int main(int argc, char *argv[])
 
     while (running)
     {
+        Uint32 startTime = SDL_GetTicks();
+
         SDL_Event event;
 
         while (SDL_PollEvent(&event))
@@ -60,6 +53,14 @@ int main(int argc, char *argv[])
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 printf("MOUSE DOWN %i\n", !mouse_down);
+                if (mouse_down)
+                {
+                    AClient->JoinRoom(client, 124);
+                }
+                else
+                {
+                    // AClient->SendObject(client, object);
+                }
                 mouse_down = !mouse_down;
             case SDL_MOUSEWHEEL:
                 printf("mouse wheel\n");
@@ -84,24 +85,48 @@ int main(int argc, char *argv[])
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
 
+        if (mouse_down)
+        {
+            object->position[0] = mouseX;
+            object->position[1] = mouseY;
+
+            AClient->SendObject(client, object);
+        }
+
         // camera_follow_target();
 
         camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
         AGameObject->UpdateGameObjects();
 
         render_begin();
-        render_begin_pixelated();
+        // render_begin_pixelated();
 
         AGameObject->RenderGameObjects();
 
-        render_end_pixelated();
+        // render_end_pixelated();
 
-        render_light((vec3){mouseX, mouseY, 55});
+        render_light((vec3){200, 200, 55});
 
         render_end();
+
+        // FPS and Keep alive functions
+        Uint32 currentTime = SDL_GetTicks();
+        Uint32 elapsedTime = currentTime - startTime;
+
+        // Calculate FPS and print to console
+        // float fps = 1000.0f / elapsedTime;
+        // printf("FPS: %.2f\n", fps);
+
+        // Regulate frame rate so the game doesn't consume computah
+        if (elapsedTime < 16)
+        {
+            SDL_Delay(16 - elapsedTime);
+            float fps = 1000.0f / (16 - elapsedTime);
+            // printf("FPS: %.2f\n", fps);
+        }
     }
 
-    thread_pool_cleanup();
+    // thread_pool_cleanup();
 
     return 0;
 }

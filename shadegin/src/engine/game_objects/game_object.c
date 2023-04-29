@@ -74,7 +74,7 @@ static void RenderGameObjects()
 
 static void ApplyGravity(GameObject *object)
 {
-    object->velocity[1] += -.0001;
+    object->velocity[1] += -.01;
 }
 
 static void Update(GameObject *object)
@@ -107,10 +107,27 @@ static void UpdateGameObjects()
     }
 }
 
+static void Deserialize(GameObject *object)
+{
+    // for (int x = 0; x < GameObjectsSize; x++)
+    // {
+    // if (GameObjectsArray[x]->id == object->id)
+    // {
+    printf("assigning position!\n");
+    GameObjectsArray[0]->position[0] = object->position[0];
+    GameObjectsArray[0]->position[1] = object->position[1];
+    GameObjectsArray[0]->position[2] = object->position[2];
+    printf("position updated %f, %f", GameObjectsArray[0]->position[0], GameObjectsArray[0]->position[1]);
+    // }
+    // }
+    // printf("object wans't found\n");
+}
+
 struct AGameObject AGameObject[1] =
     {{Init,
       InitBox,
       Render,
       RenderGameObjects,
       Update,
-      UpdateGameObjects}};
+      UpdateGameObjects,
+      Deserialize}};
