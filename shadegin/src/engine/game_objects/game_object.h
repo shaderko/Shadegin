@@ -14,24 +14,21 @@
 
 #include "collider/collider.h"
 #include "renderer/renderer.h"
+#include "../networking/server.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
-// typedef struct SerializedGameObject SerializedGameObject;
-// struct SerializedGameObject
-// {
-//     int id;
-//     vec3 position;
-//     vec3 velocity;
-//     float mass;
-//     bool is_static;
-//     ColliderType collider_type;
-//     vec3 collider_position;
-//     vec3 collider_size;
-//     RendererType renderer_type;
-//     vec3 renderer_position;
-//     vec3 renderer_size;
-// };
+typedef struct SerializedGameObject SerializedGameObject;
+struct SerializedGameObject
+{
+    int id;
+    vec3 position;
+    vec3 velocity;
+    float mass;
+    bool is_static;
+    SerializedCollider collider;
+    SerializedRenderer renderer;
+};
 
 typedef struct GameObject GameObject;
 struct GameObject
@@ -79,6 +76,8 @@ struct AGameObject
      */
     GameObject *(*Init)();
 
+    GameObject *(*Create)(bool is_static, float mass, vec3 position);
+
     /**
      * Create a game object box
      */
@@ -101,7 +100,8 @@ struct AGameObject
      * Create new one if it doesn't exist
      * If it does apply all variables
      */
-    void (*Deserialize)(GameObject *object);
+    SerializedDerived (*Serialize)(GameObject *object);
+    GameObject *(*Deserialize)(SerializedGameObject *object, int *collider, int *renderer);
 };
 
 extern struct AGameObject AGameObject[1];

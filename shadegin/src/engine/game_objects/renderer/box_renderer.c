@@ -36,6 +36,16 @@ static void Render(Renderer *renderer, vec3 position)
     render_square(world_position, *renderer->Size(renderer), (vec4){0, 0, 0, 0}, true); // TODO: color
 }
 
+static SerializedDerived Serialize(Renderer *renderer)
+{
+    SerializedDerived serialize_renderer;
+    serialize_renderer.len = sizeof(vec3);
+    serialize_renderer.data = malloc(serialize_renderer.len);
+    memcpy(serialize_renderer.data, renderer->Size(renderer), sizeof(vec3));
+
+    return serialize_renderer;
+}
+
 static Renderer *Init(Renderer *renderer, vec3 size)
 {
     BoxRenderer *box_renderer;
@@ -45,8 +55,8 @@ static Renderer *Init(Renderer *renderer, vec3 size)
         renderer->Delete(renderer);
         return NULL; // TODO: error exit
     }
-
     renderer->derived = box_renderer;
+    renderer->type = BOX_RENDERER;
 
     box_renderer->parent = renderer;
     memcpy(box_renderer->size, size, sizeof(vec3));
@@ -54,6 +64,7 @@ static Renderer *Init(Renderer *renderer, vec3 size)
     renderer->Render = Render;
     renderer->Size = Size;
     renderer->Delete = Delete;
+    renderer->Seralize = Serialize;
 
     return renderer;
 }

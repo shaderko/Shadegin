@@ -10,8 +10,8 @@
  */
 
 #include "collider.h"
-#include "../../util.h"
 #include "box_collider.h"
+#include "../../util.h"
 
 static void Delete(Collider *collider)
 {
@@ -45,6 +45,17 @@ static Collider *InitBox(vec3 position, vec3 size)
     return collider;
 }
 
+static SerializedCollider Serialize(Collider *collider)
+{
+    SerializedCollider serialized = {
+        {collider->position[0], collider->position[1], collider->position[2]},
+        collider->type,
+        collider->Seralize(collider),
+    };
+    return serialized;
+}
+
 struct ACollider ACollider[1] =
     {{Init,
-      InitBox}};
+      InitBox,
+      Serialize}};

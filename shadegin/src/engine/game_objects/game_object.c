@@ -43,6 +43,28 @@ static GameObject *Init()
  * @param is_static dynamic physics or static
  * @return GameObject*
  */
+static GameObject *Create(bool is_static, float mass, vec3 position)
+{
+    GameObject *object = Init();
+
+    /**
+     * Initialize all the main variables like is_static...
+     */
+    memcpy(object->position, position, sizeof(vec3));
+    object->mass = mass;
+    object->is_static = is_static;
+
+    object->collider = NULL;
+    object->renderer = NULL;
+    return object;
+}
+
+/**
+ * Initialize a box game object with box collider and renderer
+ *
+ * @param is_static dynamic physics or static
+ * @return GameObject*
+ */
 static GameObject *InitBox(bool is_static, float mass, vec3 position, vec3 size)
 {
     GameObject *object = Init();
@@ -107,27 +129,80 @@ static void UpdateGameObjects()
     }
 }
 
-static void Deserialize(GameObject *object)
+static SerializedDerived Serialize(GameObject *object)
 {
-    // for (int x = 0; x < GameObjectsSize; x++)
-    // {
-    // if (GameObjectsArray[x]->id == object->id)
-    // {
-    printf("assigning position!\n");
-    GameObjectsArray[0]->position[0] = object->position[0];
-    GameObjectsArray[0]->position[1] = object->position[1];
-    GameObjectsArray[0]->position[2] = object->position[2];
-    printf("position updated %f, %f", GameObjectsArray[0]->position[0], GameObjectsArray[0]->position[1]);
-    // }
-    // }
-    // printf("object wans't found\n");
+    SerializedCollider collider = ACollider->Serialize(object->collider);
+    SerializedRenderer renderer = ARenderer->Serialize(object->renderer);
+
+    SerializedGameObject serialize_obj = {
+        object->id,
+        {object->position[0], object->position[1], object->position[2]},
+        {object->velocity[0], object->velocity[1], object->velocity[2]},
+        object->mass,
+        object->is_static,
+        collider,
+        renderer};
+
+    SerializedDerived result;
+    result.len = sizeof(SerializedGameObject) + collider.derived.len + renderer.derived.len;
+    result.data = malloc(result.len);
+    memcpy(result.data, &serialize_obj, sizeof(SerializedGameObject));
+    memcpy(result.data + sizeof(SerializedGameObject), serialize_obj.collider.derived.data, serialize_obj.collider.derived.len);
+    memcpy(result.data + sizeof(SerializedGameObject) + serialize_obj.collider.derived.len, serialize_obj.renderer.derived.data, serialize_obj.renderer.derived.len);
+
+    free(serialize_obj.collider.derived.data);
+    free(serialize_obj.renderer.derived.data);
+
+    return result;
+}
+
+static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer)
+{
+    for (int x = 0; x < GameObjectsSize; x++)
+    {
+        if (GameObjectsArray[x]->id == object->id)
+        {
+            printf("assigning position!\n");
+            GameObjectsArray[x]->position[0] = object->position[0];
+            GameObjectsArray[x]->position[1] = object->position[1];
+            GameObjectsArray[x]->position[2] = object->position[2];
+            printf("position updated %f, %f\n", object->position[0], object->position[1]);
+            return GameObjectsArray[x];
+        }
+    }
+    printf("object wans't found, creating\n");
+
+    GameObject *new_obj = AGameObject->Create(object->is_static, object->mass, object->position);
+    new_obj->id = object->id;
+    switch (object->collider.type)
+    {
+    case BOX_COLLIDER:
+        new_obj->collider = ACollider->InitBox(object->collider.position, collider);
+        break;
+    default:
+        break;
+    }
+
+    switch (object->renderer.type)
+    {
+    case BOX_RENDERER:
+        new_obj->renderer = ARenderer->InitBox(object->renderer.position, renderer);
+        break;
+    default:
+        break;
+    }
+
+    printf("object created!\n");
+    return new_obj;
 }
 
 struct AGameObject AGameObject[1] =
     {{Init,
+      Create,
       InitBox,
       Render,
       RenderGameObjects,
       Update,
       UpdateGameObjects,
+      Serialize,
       Deserialize}};

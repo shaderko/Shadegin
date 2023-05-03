@@ -10,8 +10,9 @@
  */
 
 #include "renderer.h"
-#include "../../util.h"
 #include "box_renderer.h"
+#include "../../util.h"
+#include "../../networking/server.h"
 
 static void Delete(Renderer *renderer)
 {
@@ -45,6 +46,17 @@ static Renderer *InitBox(vec3 position, vec3 size)
     return renderer;
 }
 
+static SerializedRenderer Serialize(Renderer *renderer)
+{
+    SerializedRenderer serialized = {
+        {renderer->position[0], renderer->position[1], renderer->position[2]},
+        renderer->type,
+        renderer->Seralize(renderer),
+    };
+    return serialized;
+}
+
 struct ARenderer ARenderer[1] =
     {{Init,
-      InitBox}};
+      InitBox,
+      Serialize}};

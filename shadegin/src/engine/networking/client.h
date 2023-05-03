@@ -19,16 +19,17 @@
 typedef struct Client Client;
 struct Client
 {
+    int id;
+    int room_id;
     IPaddress ip;
     UDPsocket server;
-    Room *room;
 };
 
 struct AClient
 {
     Client *(*Init)();
-    Client *(*InitFromSocket)(UDPsocket client_socket);
     // void (*KeepAlive)(Client *client);
+    int (*CheckConnection)(Client *client);
     void (*JoinRoom)(Client *client, int room_id);
     void (*SendObject)(Client *client, GameObject *object);
 };

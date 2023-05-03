@@ -17,30 +17,29 @@
 
 int main(int argc, char *argv[])
 {
-    bool is_server = false;
     for (int i = 0; i < argc; i++)
     {
         if (strcmp(argv[i], "-s") == 0)
         {
-            is_server = true;
+            AServer->Init();
+            return 0;
         }
-    }
-
-    if (is_server)
-    {
-        AServer->Init();
-        return;
     }
 
     render_init();
 
     Client *client = AClient->Init();
+    if (client == NULL)
+    {
+        return 0;
+    }
 
     bool running = true;
     bool mouse_down = false;
 
     Camera *camera = get_camera();
 
+    GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 200, 0}, (vec3){100, 100, 100});
     while (running)
     {
         Uint32 startTime = SDL_GetTicks();
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    // AClient->SendObject(client, object);
+                    AClient->SendObject(client, object);
                 }
                 mouse_down = !mouse_down;
             case SDL_MOUSEWHEEL:
@@ -88,13 +87,13 @@ int main(int argc, char *argv[])
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
 
-        if (mouse_down)
-        {
-            object->position[0] = mouseX;
-            object->position[1] = mouseY;
+        // if (mouse_down)
+        // {
+        //     object->position[0] = mouseX;
+        //     object->position[1] = mouseY;
 
-            AClient->SendObject(client, object);
-        }
+        //     AClient->SendObject(client, object);
+        // }
 
         // camera_follow_target();
 
@@ -124,7 +123,7 @@ int main(int argc, char *argv[])
         if (elapsedTime < 16)
         {
             SDL_Delay(16 - elapsedTime);
-            float fps = 1000.0f / (16 - elapsedTime);
+            // float fps = 1000.0f / (16 - elapsedTime);
             // printf("FPS: %.2f\n", fps);
         }
     }

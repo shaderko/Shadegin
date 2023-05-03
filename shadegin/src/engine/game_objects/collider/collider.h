@@ -16,10 +16,26 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include "../serialized.h"
 
 typedef struct GameObject GameObject;
-typedef struct Collider Collider;
 
+typedef enum ColliderType ColliderType;
+enum ColliderType
+{
+    NONE_COLLIDER,
+    BOX_COLLIDER,
+};
+
+typedef struct SerializedCollider SerializedCollider;
+struct SerializedCollider
+{
+    vec3 position;
+    ColliderType type;
+    SerializedDerived derived;
+};
+
+typedef struct Collider Collider;
 struct Collider
 {
     /**
@@ -32,8 +48,14 @@ struct Collider
      */
     vec3 position;
 
+    /**
+     * Collider type for serialization
+     */
+    ColliderType type;
+
     bool (*Collide)(GameObject *, GameObject *);
     void (*Delete)(Collider *);
+    SerializedDerived (*Seralize)(Collider *);
 };
 
 struct ACollider
@@ -43,6 +65,8 @@ struct ACollider
      */
     Collider *(*Init)();
     Collider *(*InitBox)(vec3 position, vec3 size);
+
+    SerializedCollider (*Serialize)(Collider *);
 };
 
 extern struct ACollider ACollider[1];

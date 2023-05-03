@@ -56,6 +56,16 @@ static void Delete(Collider *collider)
     free(collider);
 }
 
+static SerializedDerived Serialize(Collider *collider)
+{
+    SerializedDerived serialize_collider;
+    serialize_collider.len = sizeof(vec3);
+    serialize_collider.data = malloc(serialize_collider.len);
+    memcpy(serialize_collider.data, collider->position, sizeof(vec3));
+
+    return serialize_collider;
+}
+
 static Collider *Init(Collider *collider, vec3 size)
 {
     BoxCollider *box_collider;
@@ -66,12 +76,15 @@ static Collider *Init(Collider *collider, vec3 size)
         return NULL; // TODO: error exit
     }
     collider->derived = box_collider;
+    collider->Seralize = Serialize;
+    collider->type = BOX_COLLIDER;
     box_collider->parent = collider;
 
     memcpy(box_collider->size, size, sizeof(vec3));
 
     collider->Collide = Collide;
     collider->Delete = Delete;
+    collider->Seralize = Serialize;
 
     return collider;
 }
