@@ -16,7 +16,6 @@
 #include "room.h"
 #include "server.h"
 #include "../game_objects/map/scene.h"
-
 #include "../game_objects/game_object.h"
 
 /**
@@ -27,6 +26,9 @@
 static int RoomGame(void *data)
 {
     Room *room = (Room *)data;
+
+    printf("Loading map for room %d\n", room->room_id);
+    SDL_Delay(2000);
     Scene *scene = AScene->Init(&((vec3){0, 0, 0}));
     // Load map
     // GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
@@ -39,8 +41,10 @@ static int RoomGame(void *data)
     AScene->ReadFile(scene, "file");
     for (int i = 0; i < scene->objects_size; i++)
     {
-        printf("%f\n", scene->objects[i]->id);
+        printf("%i\n", scene->objects[i]->id);
     }
+
+    printf("Map loaded, starting main loop\n");
 
     while (room->is_active)
     {
@@ -79,42 +83,56 @@ static int RoomGame(void *data)
 
 static Room *Init(Server *server)
 {
-    printf("initializing room\n");
+    printf("Creating room\n");
     Room *room = malloc(sizeof(Room));
     if (room == NULL)
     {
-        ERROR_EXIT("Error allocating space for room\n");
+        ERROR_EXIT("Couldn't allocate memory for room!\n");
     }
-
     room->server = server;
-    room->queue = malloc(sizeof(RoomQueue));
-    room->queue->mutex = SDL_CreateMutex();
-    if (room->queue->mutex == NULL)
-    {
-        printf("Error creating mutex: %s\n", SDL_GetError());
-        return NULL;
-    }
-    room->queue->data = malloc(sizeof(Message *) * 256);
-    room->queue->tail = 0;
-    room->queue->size = 0;
-    room->queue->capacity = 256;
+
     room->is_active = true;
     room->clients = NULL;
     room->clients_size = 0;
     room->room_id = generate_random_id();
 
+    // Create queue
+    room->queue = malloc(sizeof(RoomQueue));
+    if (room->queue == NULL)
+    {
+        ERROR_EXIT("Couldn't allocate memory for room %d queue!\n", room->room_id);
+    }
+    room->queue->mutex = SDL_CreateMutex();
+    if (room->queue->mutex == NULL)
+    {
+        ERROR_EXIT("Error failed creating queue mutex! %s\n", SDL_GetError());
+    }
+    room->queue->data = malloc(sizeof(Message *) * 256);
+    if (room->queue->data == NULL)
+    {
+        ERROR_EXIT("Couldn't allocate memory for room %d queue data!\n", room->room_id);
+    }
+    room->queue->tail = 0;
+    room->queue->size = 0;
+    room->queue->capacity = 256;
+
     server->rooms = realloc(server->rooms, (server->rooms_size + 1) * sizeof(Room *));
     if (server->rooms == NULL)
     {
-        ERROR_EXIT("Error allocating space for server rooms\n");
+        ERROR_EXIT("Couldn't allocate memory for server rooms, room %d!\n", room->room_id);
     }
-
     server->rooms[server->rooms_size] = room;
     server->rooms_size++;
 
     Room *thread_data = malloc(sizeof(Room *));
+    if (thread_data == NULL)
+    {
+        ERROR_EXIT("Couldn't allocate memory for thread data, room %d!\n", room->room_id);
+    }
     thread_data = room;
     room->thread = SDL_CreateThread(RoomGame, "Thread", thread_data);
+
+    printf("Room created with id %d\n", room->room_id);
 
     return room;
 }

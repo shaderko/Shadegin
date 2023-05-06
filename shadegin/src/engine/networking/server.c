@@ -25,6 +25,7 @@ static void Init()
     server = malloc(sizeof(Server));
     if (server == NULL)
     {
+        free(server);
         ERROR_EXIT("Server memory couldn't be allocated!\n");
     }
     server->clients = NULL;
@@ -32,6 +33,7 @@ static void Init()
 
     if (SDLNet_ResolveHost(&server->ip, NULL, 1234) == -1)
     {
+        free(server);
         ERROR_EXIT("Error resolving server host: %s\n", SDLNet_GetError());
     }
 
@@ -39,12 +41,14 @@ static void Init()
     server->server = SDLNet_UDP_Open(1234);
     if (!server->server)
     {
+        free(server);
         ERROR_EXIT("Error opening server socket: %s\n", SDLNet_GetError());
     }
 
     UDPpacket *packet = SDLNet_AllocPacket(512);
     if (!packet)
     {
+        free(server);
         ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
     }
 
@@ -80,25 +84,46 @@ static void Response(IPaddress address, int room_id, MessageType type, int size,
     printf("Packet sent\n");
 }
 
-static ServerClient *GetClient(int client_id, IPaddress address)
+static ServerClient *AddClient(int client_id, IPaddress address)
 {
-    if (client_id < 0)
+    server->clients = realloc(server->clients, sizeof(ServerClient) * (server->clients_size + 1));
+    if (server->clients == NULL)
     {
-        server->clients = realloc(server->clients, sizeof(ServerClient) * (server->clients_size + 1));
-        if (server->clients == NULL)
-        {
-            printf("couldn't allocate server clients\n");
-            return NULL;
-        }
-
-        ServerClient client = {server->clients_size, address, SDL_GetTicks(), NULL};
-        server->clients[server->clients_size] = client;
-        server->clients_size++;
-
-        return &server->clients[server->clients_size - 1];
+        // Close server TODO:
+        ERROR_EXIT("Server clients couldn't be allocated!\n");
     }
 
-    return &server->clients[client_id];
+    ServerClient client = {server->clients_size, address, SDL_GetTicks(), NULL};
+    server->clients[server->clients_size] = client;
+    server->clients_size++;
+
+    return &server->clients[server->clients_size - 1];
+}
+
+static ServerClient *GetClient(int client_id, IPaddress address)
+{
+    if (client_id > server->clients_size)
+    {
+        return NULL;
+    }
+
+    if (client_id < 0)
+    {
+        return AServer->AddClient(client_id, address);
+    }
+
+    ServerClient *client = &server->clients[client_id];
+    if (client == NULL)
+    {
+        return NULL;
+    }
+
+    if (client->address.host == address.host && client->address.port == address.port)
+    {
+        return client;
+    }
+
+    return NULL;
 }
 
 static void ReceiveData(UDPpacket *packet)
@@ -107,10 +132,15 @@ static void ReceiveData(UDPpacket *packet)
     {
         return;
     }
+
     Message *message = malloc(sizeof(Message));
     memcpy(message, packet->data, sizeof(Message));
 
     ServerClient *client = AServer->GetClient(message->client_id, packet->address);
+    if (client == NULL)
+    {
+        // TODO: client has been disconnected
+    }
 
     if (message->room_id < 0)
     {
@@ -176,4 +206,4 @@ static Server *GetServer()
 }
 
 struct AServer AServer[1] =
-    {{Init, GetServer, Response, GetClient, ReceiveData}};
+    {{Init, GetServer, Response, AddClient, GetClient, ReceiveData}};

@@ -59,6 +59,7 @@ struct AServer
     void (*Init)();
     Server *(*GetServer)();
     void (*Response)(IPaddress address, int room_id, MessageType type, int size, int *data);
+    ServerClient *(*AddClient)(int client_id, IPaddress address);
     ServerClient *(*GetClient)(int client_id, IPaddress address);
     void (*ReceiveData)(UDPpacket *packet);
 };
