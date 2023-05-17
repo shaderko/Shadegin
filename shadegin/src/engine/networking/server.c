@@ -52,7 +52,7 @@ static void Init()
         ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
     }
 
-    printf("Server initialized! Receving data.\n");
+    puts("Server initialized! Receving data.");
 
     // Main server loop
     while (1)
@@ -65,26 +65,27 @@ static void Init()
     SDLNet_UDP_Close(server->server);
 }
 
-static void Response(IPaddress address, int room_id, MessageType type, int size, int *data)
+static void Response(IPaddress address, int client_id, MessageType type, int size, int *data)
 {
-    Message message = {0, room_id, type, size, data};
-    printf("sending %lu bytes\n", sizeof(message));
-    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message));
+    Message message = {client_id, type, size, data};
 
+    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message));
     packet->address.host = address.host;
     packet->address.port = address.port;
-    memcpy(packet->data, &message, sizeof(Message));
     packet->len = sizeof(Message);
+
+    memcpy(packet->data, &message, sizeof(Message));
+
+    printf("Sending %lu bytes\n", sizeof(message));
 
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
         printf("Error sending packet\n");
         return;
     }
-    printf("Packet sent\n");
 }
 
-static ServerClient *AddClient(int client_id, IPaddress address)
+static ServerClient *AddClient(IPaddress address)
 {
     server->clients = realloc(server->clients, sizeof(ServerClient) * (server->clients_size + 1));
     if (server->clients == NULL)
@@ -105,11 +106,6 @@ static ServerClient *GetClient(int client_id, IPaddress address)
     if (client_id > server->clients_size)
     {
         return NULL;
-    }
-
-    if (client_id < 0)
-    {
-        return AServer->AddClient(client_id, address);
     }
 
     ServerClient *client = &server->clients[client_id];
@@ -136,68 +132,92 @@ static void ReceiveData(UDPpacket *packet)
     Message *message = malloc(sizeof(Message));
     memcpy(message, packet->data, sizeof(Message));
 
-    ServerClient *client = AServer->GetClient(message->client_id, packet->address);
-    if (client == NULL)
-    {
-        // TODO: client has been disconnected
-    }
+    ServerClient *client = NULL;
+    Room *room = NULL;
 
-    if (message->room_id < 0)
+    if (message->type == CONNECTION_REQUEST)
     {
-        // KEEP ALIVE TODO: send msg back and update last seen
-        printf("negative room id, keep alive message\n");
-
-        AServer->Response(packet->address, -1, NONE, 0, NULL);
+        client = AServer->AddClient(packet->address);
+        // Respond with connection accept
+        AServer->Response(packet->address, client->client_id, CONNECTION_RESPONSE, 0, NULL);
 
         free(message);
         return;
     }
-
-    Room *room = NULL;
-    if (message->room_id == 0)
+    else if (message->type == LOGIN_REQUEST)
     {
+        // LOGIN
+        free(message);
+        return;
+    }
+
+    client = AServer->GetClient(message->client_id, packet->address);
+    if (client == NULL)
+    {
+        // TODO: client has been disconnected
+        puts("client disconnected");
+        free(message);
+        return;
+    }
+
+    // Process the type of data sent
+    switch (message->type)
+    {
+    case CREATE_ROOM_REQUEST:
         room = ARoom->Init(server);
-    }
-    else
-    {
-        room = ARoom->GetRoom(server, message->room_id);
-    }
+        if (room == NULL)
+        {
+            AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, 0, NULL);
+            // Respond with failure to create room
+        }
+        AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
+        // Respond with success
+        break;
 
-    // Add client to room
-    ARoom->JoinClient(room, client);
+    case JOIN_ROOM_REQUEST:
+        // room = ARoom->GetRoom(server, message->data);
+        if (room == NULL)
+        {
+            AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, 0, NULL);
+            break;
+        }
+        // Add client to room, and add room to client
+        // ARoom->JoinClient(room, client);
+        AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
+        break;
+
+    case DATA_RESPONSE:
+        message->data = malloc(message->length);
+        memcpy(message->data, packet->data + sizeof(Message), message->length);
+
+        SDL_LockMutex(room->queue->mutex);
+        room->queue->data[room->queue->tail] = message;
+        room->queue->size++;
+        room->queue->tail++;
+
+        if (room->queue->tail > room->queue->capacity)
+        {
+            room->queue->tail = 0;
+        }
+        SDL_UnlockMutex(room->queue->mutex);
+
+    default:
+        break;
+    }
 
     if (room == NULL)
     {
         char error_msg[] = "Room doesn't exist or failed to create.";
 
         printf("%s\n", error_msg);
-        AServer->Response(packet->address, room->room_id, ERROR, sizeof(error_msg), &error_msg);
+        AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, sizeof(error_msg), &error_msg);
 
         free(message);
         return;
     }
 
-    AServer->Response(packet->address, room->room_id, NONE, 0, NULL);
-
-    printf("%d\n", message->length);
-    if (message->length <= 0)
-    {
-        printf("packet too small\n");
-        return;
-    }
-    message->data = malloc(message->length);
-    memcpy(message->data, packet->data + sizeof(Message), message->length);
-
-    SDL_LockMutex(room->queue->mutex);
-    room->queue->data[room->queue->tail] = message;
-    room->queue->size++;
-    room->queue->tail++;
-
-    if (room->queue->tail > room->queue->capacity)
-    {
-        room->queue->tail = 0;
-    }
-    SDL_UnlockMutex(room->queue->mutex);
+    AServer->Response(packet->address, client->client_id, CONNECTION_RESPONSE, 0, NULL);
+    free(message);
 }
 
 static Server *GetServer()

@@ -27,9 +27,12 @@ struct Client
 
 struct AClient
 {
+    /**
+     * Initializes a client, connects and logs in to server
+     */
     Client *(*Init)();
-    // void (*KeepAlive)(Client *client);
-    int (*CheckConnection)(Client *client);
+    int (*Connect)(Client *client);
+    int (*Login)(Client *client);
     void (*JoinRoom)(Client *client, int room_id);
     void (*SendObject)(Client *client, GameObject *object);
 };

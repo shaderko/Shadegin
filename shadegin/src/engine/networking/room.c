@@ -153,30 +153,30 @@ static void ProcessData(Room *room)
 
     while (room->queue->size > 0)
     {
-        Message *message = room->queue->data[index];
+        // Message *message = room->queue->data[index];
 
-        SerializedGameObject *object = NULL;
-        int *collider;
-        int *renderer;
-        switch (message->type)
-        {
-        case NONE:
-            printf("none\n");
-            break;
-        case GAME_OBJECT:
-            printf("updating gameobject\n");
-            object = (SerializedGameObject *)message->data;
-            collider = message->data + sizeof(SerializedGameObject);
-            renderer = message->data + sizeof(SerializedGameObject) + object->collider.derived.len;
-            AGameObject->Deserialize(object, collider, renderer);
-            break;
-        default:
-            break;
-        }
+        // SerializedGameObject *object = NULL;
+        // int *collider;
+        // int *renderer;
+        // switch (message->type)
+        // {
+        // case NONE:
+        //     printf("none\n");
+        //     break;
+        // case GAME_OBJECT:
+        //     printf("updating gameobject\n");
+        //     object = (SerializedGameObject *)message->data;
+        //     collider = message->data + sizeof(SerializedGameObject);
+        //     renderer = message->data + sizeof(SerializedGameObject) + object->collider.derived.len;
+        //     AGameObject->Deserialize(object, collider, renderer);
+        //     break;
+        // default:
+        //     break;
+        // }
 
-        index++;
-        room->queue->size--;
-        free(message);
+        // index++;
+        // room->queue->size--;
+        // free(message);
     }
     SDL_UnlockMutex(room->queue->mutex);
 }
