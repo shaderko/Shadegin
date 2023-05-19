@@ -13,9 +13,6 @@
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 
-#include <stdio.h>
-#include <time.h>
-
 static GameObject **GameObjectsArray = NULL;
 static size_t GameObjectsSize = 0;
 
@@ -24,13 +21,16 @@ static GameObject *Init()
     GameObject *object = malloc(sizeof(GameObject));
     if (object == NULL)
     {
-        // TODO: error
-        return NULL;
+        ERROR_EXIT("GameObject memory couldn't be allocated!\n");
     }
     object->id = generate_random_id();
-    printf("created object with id %d\n", object->id);
+    printf("Initialized object with id %d\n", object->id);
 
     GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
+    if (GameObjectsArray == NULL)
+    {
+        ERROR_EXIT("GameObjectsArray memory couldn't be allocated!\n");
+    }
     GameObjectsArray[GameObjectsSize] = object;
     GameObjectsSize++;
 
@@ -38,7 +38,7 @@ static GameObject *Init()
 }
 
 /**
- * Initialize a box game object with box collider and renderer
+ * Initialize a box game object with no collider and renderer
  *
  * @param is_static dynamic physics or static
  * @return GameObject*
@@ -81,11 +81,20 @@ static GameObject *InitBox(bool is_static, float mass, vec3 position, vec3 size)
     return object;
 }
 
+/**
+ * @brief Render the game object
+ *
+ * @param object
+ */
 static void Render(GameObject *object)
 {
     object->renderer->Render(object->renderer, object->position);
 }
 
+/**
+ * @brief Render all game objects
+ *
+ */
 static void RenderGameObjects()
 {
     for (int x = 0; x < GameObjectsSize; x++)
@@ -94,11 +103,21 @@ static void RenderGameObjects()
     }
 }
 
+/**
+ * @brief Apply gravity to object
+ *
+ * @param object
+ */
 static void ApplyGravity(GameObject *object)
 {
     object->velocity[1] += -.01;
 }
 
+/**
+ * @brief Update the game object and it's physics and collisions
+ *
+ * @param object
+ */
 static void Update(GameObject *object)
 {
     if (object->is_static)
@@ -121,6 +140,10 @@ static void Update(GameObject *object)
     object->position[2] += object->velocity[2];
 }
 
+/**
+ * @brief Update all game objects
+ *
+ */
 static void UpdateGameObjects()
 {
     for (int x = 0; x < GameObjectsSize; x++)
@@ -129,6 +152,12 @@ static void UpdateGameObjects()
     }
 }
 
+/**
+ * @brief Serialize the game object
+ *
+ * @param object
+ * @return SerializedDerived
+ */
 static SerializedDerived Serialize(GameObject *object)
 {
     SerializedCollider collider = ACollider->Serialize(object->collider);
@@ -156,6 +185,14 @@ static SerializedDerived Serialize(GameObject *object)
     return result;
 }
 
+/**
+ * @brief Deserialize the game object, update it's variables and create a new one if it doesn't exist
+ *
+ * @param object
+ * @param collider
+ * @param renderer
+ * @return GameObject*
+ */
 static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer)
 {
     for (int x = 0; x < GameObjectsSize; x++)

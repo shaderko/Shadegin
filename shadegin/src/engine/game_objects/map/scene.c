@@ -9,6 +9,8 @@
  *
  */
 
+#include <stdio.h>
+
 #include "scene.h"
 #include "../game_object.h"
 

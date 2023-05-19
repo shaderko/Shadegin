@@ -12,11 +12,14 @@
 #ifndef GAME_OBJECT_H
 #define GAME_OBJECT_H
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 #include "../networking/server.h"
-#include <stdbool.h>
-#include <stdlib.h>
 
 typedef struct SerializedGameObject SerializedGameObject;
 struct SerializedGameObject

@@ -167,7 +167,7 @@ static void ReceiveData(UDPpacket *packet)
         room = ARoom->Init(server);
         if (room == NULL)
         {
-            AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, 0, NULL);
+            AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, 0, NULL);
             // Respond with failure to create room
         }
         AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
@@ -175,14 +175,14 @@ static void ReceiveData(UDPpacket *packet)
         break;
 
     case JOIN_ROOM_REQUEST:
-        // room = ARoom->GetRoom(server, message->data);
+        room = ARoom->GetRoom(server, message->data);
         if (room == NULL)
         {
-            AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, 0, NULL);
+            AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, 0, NULL);
             break;
         }
         // Add client to room, and add room to client
-        // ARoom->JoinClient(room, client);
+        ARoom->JoinClient(room, client);
         AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
         break;
 

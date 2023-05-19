@@ -39,10 +39,10 @@ static int RoomGame(void *data)
     // AScene->Add(scene, object2);
     // AScene->WriteToFile(scene, "file");
     AScene->ReadFile(scene, "file");
-    for (int i = 0; i < scene->objects_size; i++)
-    {
-        printf("%i\n", scene->objects[i]->id);
-    }
+    // for (int i = 0; i < scene->objects_size; i++)
+    // {
+    //     printf("%i\n", scene->objects[i]->id);
+    // }
 
     printf("Map loaded, starting main loop\n");
 
@@ -210,7 +210,7 @@ static void DeleteRoom(Room *room)
                 break;
             }
             room->server->rooms[i] = room->server->rooms[room->server->rooms_size];
-            printf("room deleted\n");
+            printf("Room deleted room %d\n", room->room_id);
             break;
         }
     }
@@ -218,13 +218,13 @@ static void DeleteRoom(Room *room)
 }
 
 /**
- * @brief Get the Room object
+ * @brief Get the Room object from server
  *
  * @param server - server that should be searched for the room id
  * @param room_id - room id
  * @return Room* if room with the given id exists, otherwise NULL
  */
-static Room *GetRoom(Server *server, int room_id)
+static Room *GetRoom(Server *server, Uint32 room_id)
 {
     for (int i = 0; i < server->rooms_size; i++)
     {
@@ -256,8 +256,7 @@ static void JoinClient(Room *room, ServerClient *client)
     room->clients = realloc(room->clients, sizeof(ServerClient *) * (room->clients_size + 1));
     if (room->clients == NULL)
     {
-        printf("error\n");
-        return;
+        ERROR_EXIT("Couldn't allocate memory for room %d clients!\n", room->room_id);
     }
 
     room->clients[room->clients_size] = client;
@@ -284,6 +283,7 @@ static void RemoveClient(Room *room, ServerClient *client)
             room->clients_size--;
         }
     }
+    free(client);
 }
 
 struct ARoom ARoom[1] = {{Init,

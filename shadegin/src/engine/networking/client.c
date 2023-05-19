@@ -134,7 +134,7 @@ static void JoinRoom(Client *client, Uint32 room_id)
 
             if (message->type != JOIN_ROOM_RESPONSE)
             {
-                printf("problem \n");
+                printf("problem\n");
                 free(message);
                 break;
             }

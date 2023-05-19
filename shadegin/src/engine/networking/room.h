@@ -53,7 +53,7 @@ typedef struct Room
     /**
      * Uniquely generated id for every room
      */
-    int room_id;
+    Uint32 room_id;
 } Room;
 
 struct ARoom
@@ -73,7 +73,7 @@ struct ARoom
     /**
      * Get room with room id
      */
-    Room *(*GetRoom)(Server *server, int room_id);
+    Room *(*GetRoom)(Server *server, Uint32 room_id);
 
     void (*JoinClient)(Room *room, ServerClient *client);
     void (*RemoveClient)(Room *room, ServerClient *client);

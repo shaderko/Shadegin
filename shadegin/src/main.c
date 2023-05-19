@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
                 printf("MOUSE DOWN %i\n", !mouse_down);
                 if (mouse_down)
                 {
-                    AClient->JoinRoom(client, 124);
+                    AClient->JoinRoom(client, 0);
                 }
                 else
                 {
