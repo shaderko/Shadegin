@@ -39,7 +39,11 @@ int main(int argc, char *argv[])
 
     Camera *camera = get_camera();
 
-    GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 200, 0}, (vec3){100, 100, 100});
+    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
+    AScene->ReadFile(scene, "file");
+
+    // GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
+
     while (running)
     {
         Uint32 startTime = SDL_GetTicks();
@@ -61,7 +65,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    AClient->SendObject(client, object);
+                    for (int i = 0; i < scene->objects_size; i++)
+                    {
+                        GameObject *object = scene->objects[i];
+                        AClient->SendObject(client, object);
+                    }
                 }
                 mouse_down = !mouse_down;
             case SDL_MOUSEWHEEL:
@@ -78,6 +86,34 @@ int main(int argc, char *argv[])
                     camera->distance += 10;
                     render_update_projection(camera);
                 }
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_SPACE) // spacebar pressed
+                {
+                    // Your code logic for spacebar key press
+                    AClient->JoinRoom(client, 104616813420143);
+                    // Add your desired actions here
+                }
+                else if (event.key.keysym.sym == SDLK_w)
+                {
+                    camera->position[1] += 10;
+                    render_update_projection(camera);
+                }
+                else if (event.key.keysym.sym == SDLK_s)
+                {
+                    camera->position[1] -= 10;
+                    render_update_projection(camera);
+                }
+                else if (event.key.keysym.sym == SDLK_a)
+                {
+                    camera->position[0] -= 10;
+                    render_update_projection(camera);
+                }
+                else if (event.key.keysym.sym == SDLK_d)
+                {
+                    camera->position[0] += 10;
+                    render_update_projection(camera);
+                }
+                break;
             default:
                 break;
             }

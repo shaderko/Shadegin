@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "scene.h"
+#include "../../util.h"
 #include "../game_object.h"
 
 static Scene *Init(vec3 *size)
@@ -19,9 +20,7 @@ static Scene *Init(vec3 *size)
     Scene *scene = malloc(sizeof(Scene));
     if (scene == NULL)
     {
-        printf("Failed to allocate memory for Scene!\n");
-        // TODO:
-        return NULL;
+        ERROR_EXIT("Scene memory couldn't be allocated!\n");
     }
 
     memcpy(scene->size, size, sizeof(vec3));
@@ -29,6 +28,14 @@ static Scene *Init(vec3 *size)
     scene->objects_size = 0;
 
     return scene;
+}
+
+static Update(Scene *scene)
+{
+    for (int i = 0; i < scene->objects_size; i++)
+    {
+        AGameObject->Update(scene->objects[i]);
+    }
 }
 
 static void Add(Scene *scene, GameObject *object)
@@ -81,13 +88,15 @@ static void ReadFile(Scene *scene, const char *file)
         SerializedGameObject data;
         fread(&data, sizeof(SerializedGameObject), 1, in);
 
+        SerializedDerived collider = data.collider.derived;
+        SerializedDerived renderer = data.renderer.derived;
+
         int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
 
         fread(ad_data, data.collider.derived.len + data.renderer.derived.len, 1, in);
         AScene->Add(scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
 
         free(ad_data);
-        SDL_Delay(2000);
     }
 
     printf("finished reading\n");
@@ -97,6 +106,7 @@ static void ReadFile(Scene *scene, const char *file)
 struct AScene AScene[1] =
     {{
         Init,
+        Update,
         Add,
         WriteToFile,
         ReadFile,

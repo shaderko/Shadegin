@@ -12,6 +12,7 @@
 #include "game_object.h"
 #include "collider/collider.h"
 #include "renderer/renderer.h"
+#include "../networking/server.h"
 
 static GameObject **GameObjectsArray = NULL;
 static size_t GameObjectsSize = 0;
@@ -24,7 +25,7 @@ static GameObject *Init()
         ERROR_EXIT("GameObject memory couldn't be allocated!\n");
     }
     object->id = generate_random_id();
-    printf("Initialized object with id %d\n", object->id);
+    printf("Initialized object with id %lld\n", object->id);
 
     GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
     if (GameObjectsArray == NULL)
@@ -193,7 +194,7 @@ static SerializedDerived Serialize(GameObject *object)
  * @param renderer
  * @return GameObject*
  */
-static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer)
+static GameObject *Deserialize(SerializedGameObject *object, SerializedDerived *collider, SerializedDerived *renderer)
 {
     for (int x = 0; x < GameObjectsSize; x++)
     {
@@ -214,7 +215,7 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
     switch (object->collider.type)
     {
     case BOX_COLLIDER:
-        new_obj->collider = ACollider->InitBox(object->collider.position, collider);
+        new_obj->collider = ACollider->InitBox((float *)object->collider.position, &(vec3){100, 100, 100});
         break;
     default:
         break;
@@ -223,13 +224,13 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
     switch (object->renderer.type)
     {
     case BOX_RENDERER:
-        new_obj->renderer = ARenderer->InitBox(object->renderer.position, renderer);
+        new_obj->renderer = ARenderer->InitBox((float *)object->renderer.position, &(vec3){100, 100, 100});
         break;
     default:
         break;
     }
 
-    printf("object created!\n");
+    printf("object created! %lld\n", new_obj->id);
     return new_obj;
 }
 

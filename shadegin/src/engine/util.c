@@ -1,6 +1,6 @@
 #include "util.h"
 
-unsigned long long generate_random_id()
+ull generate_random_id()
 {
     static int initialized = 0;
     if (!initialized)
@@ -10,6 +10,6 @@ unsigned long long generate_random_id()
     }
 
     // Generate a random 64-bit unsigned integer
-    unsigned long long id = ((unsigned long long)rand() << 32) | rand();
+    ull id = ((ull)rand() << 32) | rand();
     return id;
 }

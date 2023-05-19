@@ -12,6 +12,7 @@
 #include "server.h"
 #include "room.h"
 #include "../util.h"
+#include "../types.h"
 
 static Server *server = NULL;
 
@@ -30,6 +31,9 @@ static void Init()
     }
     server->clients = NULL;
     server->clients_size = 0;
+
+    server->rooms = NULL;
+    server->rooms_size = 0;
 
     if (SDLNet_ResolveHost(&server->ip, NULL, 1234) == -1)
     {
@@ -76,7 +80,7 @@ static void Response(IPaddress address, int client_id, MessageType type, int siz
 
     memcpy(packet->data, &message, sizeof(Message));
 
-    printf("Sending %lu bytes\n", sizeof(message));
+    printf("Sending %zu bytes\n", sizeof(message));
 
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
@@ -165,13 +169,15 @@ static void ReceiveData(UDPpacket *packet)
     {
     case CREATE_ROOM_REQUEST:
         room = ARoom->Init(server);
+        client->room = room;
         if (room == NULL)
         {
             AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, 0, NULL);
             // Respond with failure to create room
         }
-        AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
+        AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, sizeof(ull), room->room_id);
         // Respond with success
+        free(message);
         break;
 
     case JOIN_ROOM_REQUEST:
@@ -183,10 +189,17 @@ static void ReceiveData(UDPpacket *packet)
         }
         // Add client to room, and add room to client
         ARoom->JoinClient(room, client);
-        AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, sizeof(Uint32), room->room_id);
+        AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, sizeof(ull), room->room_id);
+        free(message);
         break;
 
     case DATA_RESPONSE:
+        if (client->room == NULL)
+        {
+            break;
+        }
+        room = client->room;
+
         message->data = malloc(message->length);
         memcpy(message->data, packet->data + sizeof(Message), message->length);
 
@@ -212,12 +225,10 @@ static void ReceiveData(UDPpacket *packet)
         printf("%s\n", error_msg);
         AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, sizeof(error_msg), &error_msg);
 
-        free(message);
         return;
     }
 
     AServer->Response(packet->address, client->client_id, CONNECTION_RESPONSE, 0, NULL);
-    free(message);
 }
 
 static Server *GetServer()

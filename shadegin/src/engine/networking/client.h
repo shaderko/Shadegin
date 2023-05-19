@@ -14,13 +14,14 @@
 
 #include <SDL2/SDL_net.h>
 #include "room.h"
+#include "../types.h"
 #include "../game_objects/game_object.h"
 
 typedef struct Client Client;
 struct Client
 {
     int id;
-    int room_id;
+    ull room_id;
     IPaddress ip;
     UDPsocket server;
 };
@@ -33,7 +34,7 @@ struct AClient
     Client *(*Init)();
     int (*Connect)(Client *client);
     int (*Login)(Client *client);
-    void (*JoinRoom)(Client *client, int room_id);
+    void (*JoinRoom)(Client *client, ull room_id);
     void (*SendObject)(Client *client, GameObject *object);
 };
 

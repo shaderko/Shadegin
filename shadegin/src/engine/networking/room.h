@@ -15,6 +15,9 @@
 #include <stdbool.h>
 #include "SDL2/SDL_net.h"
 
+#include "../game_objects/map/scene.h"
+#include "../types.h"
+
 typedef struct ServerClient ServerClient;
 typedef struct Message Message;
 
@@ -40,6 +43,7 @@ typedef struct Room
 {
     Server *server;
     RoomQueue *queue;
+    Scene *scene;
 
     /**
      * All connected clients to the current game room (lobby)
@@ -47,13 +51,20 @@ typedef struct Room
     ServerClient **clients;
     int clients_size;
 
+    /**
+     * Is the game running
+     */
     bool is_active;
+
+    /**
+     * Thread for running the game
+     */
     SDL_Thread *thread;
 
     /**
      * Uniquely generated id for every room
      */
-    Uint32 room_id;
+    ull room_id;
 } Room;
 
 struct ARoom
@@ -73,7 +84,7 @@ struct ARoom
     /**
      * Get room with room id
      */
-    Room *(*GetRoom)(Server *server, Uint32 room_id);
+    Room *(*GetRoom)(Server *server, ull room_id);
 
     void (*JoinClient)(Room *room, ServerClient *client);
     void (*RemoveClient)(Room *room, ServerClient *client);

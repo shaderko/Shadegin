@@ -31,6 +31,7 @@ struct Scene
 struct AScene
 {
     Scene *(*Init)(vec3 *);
+    void (*Update)(Scene *scene);
     void (*Add)(Scene *scene, GameObject *object);
     void (*WriteToFile)(Scene *scene, const char *file);
     void (*ReadFile)(Scene *scene, const char *file);

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "types.h"
+
 #define ERROR_EXIT(...)           \
     fprintf(stderr, __VA_ARGS__); \
     exit(1)
@@ -12,6 +14,6 @@
     fprintf(stderr, __VA_ARGS__); \
     return R
 
-unsigned long long generate_random_id();
+ull generate_random_id();
 
 #endif

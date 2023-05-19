@@ -27,18 +27,17 @@ static int RoomGame(void *data)
 {
     Room *room = (Room *)data;
 
-    printf("Loading map for room %d\n", room->room_id);
-    SDL_Delay(2000);
-    Scene *scene = AScene->Init(&((vec3){0, 0, 0}));
+    printf("Loading map for room %lld\n", room->room_id);
+    room->scene = AScene->Init(&((vec3){0, 0, 0}));
     // Load map
     // GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
     // GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
     // GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
-    // AScene->Add(scene, object);
-    // AScene->Add(scene, object1);
-    // AScene->Add(scene, object2);
-    // AScene->WriteToFile(scene, "file");
-    AScene->ReadFile(scene, "file");
+    // AScene->Add(room->scene, object);
+    // AScene->Add(room->scene, object1);
+    // AScene->Add(room->scene, object2);
+    // AScene->WriteToFile(room->scene, "file");
+    AScene->ReadFile(room->scene, "file");
     // for (int i = 0; i < scene->objects_size; i++)
     // {
     //     printf("%i\n", scene->objects[i]->id);
@@ -54,7 +53,8 @@ static int RoomGame(void *data)
         ARoom->ProcessData(room);
 
         // Do all the game stuff
-        AGameObject->UpdateGameObjects();
+        AScene->Update(room->scene);
+        // AGameObject->UpdateGameObjects();
 
         // Send game objects
         ARoom->SendData(room);
@@ -70,7 +70,7 @@ static int RoomGame(void *data)
         else
         {
             float fps = 1000.0f / elapsedTime;
-            printf("Room %d is clogged, fps: %.2f\n", room->room_id, fps);
+            printf("Room %lld is clogged, fps: %.2f\n", room->room_id, fps);
         }
     }
 
@@ -84,6 +84,7 @@ static int RoomGame(void *data)
 static Room *Init(Server *server)
 {
     printf("Creating room\n");
+
     Room *room = malloc(sizeof(Room));
     if (room == NULL)
     {
@@ -100,7 +101,7 @@ static Room *Init(Server *server)
     room->queue = malloc(sizeof(RoomQueue));
     if (room->queue == NULL)
     {
-        ERROR_EXIT("Couldn't allocate memory for room %d queue!\n", room->room_id);
+        ERROR_EXIT("Couldn't allocate memory for room %lld queue!\n", room->room_id);
     }
     room->queue->mutex = SDL_CreateMutex();
     if (room->queue->mutex == NULL)
@@ -110,7 +111,7 @@ static Room *Init(Server *server)
     room->queue->data = malloc(sizeof(Message *) * 256);
     if (room->queue->data == NULL)
     {
-        ERROR_EXIT("Couldn't allocate memory for room %d queue data!\n", room->room_id);
+        ERROR_EXIT("Couldn't allocate memory for room %lld queue data!\n", room->room_id);
     }
     room->queue->tail = 0;
     room->queue->size = 0;
@@ -119,7 +120,7 @@ static Room *Init(Server *server)
     server->rooms = realloc(server->rooms, (server->rooms_size + 1) * sizeof(Room *));
     if (server->rooms == NULL)
     {
-        ERROR_EXIT("Couldn't allocate memory for server rooms, room %d!\n", room->room_id);
+        ERROR_EXIT("Couldn't allocate memory for server rooms, room %lld!\n", room->room_id);
     }
     server->rooms[server->rooms_size] = room;
     server->rooms_size++;
@@ -127,12 +128,12 @@ static Room *Init(Server *server)
     Room *thread_data = malloc(sizeof(Room *));
     if (thread_data == NULL)
     {
-        ERROR_EXIT("Couldn't allocate memory for thread data, room %d!\n", room->room_id);
+        ERROR_EXIT("Couldn't allocate memory for thread data, room %lld!\n", room->room_id);
     }
     thread_data = room;
     room->thread = SDL_CreateThread(RoomGame, "Thread", thread_data);
 
-    printf("Room created with id %d\n", room->room_id);
+    printf("Room created with id %lld\n", room->room_id);
 
     return room;
 }
@@ -141,42 +142,40 @@ static void ProcessData(Room *room)
 {
     if (room == NULL)
     {
-        ERROR_EXIT("Error processing data for room %d\n", room->room_id);
+        ERROR_EXIT("Error processing data.\n");
     }
     SDL_LockMutex(room->queue->mutex);
 
-    int index = (room->queue->tail - room->queue->size) % room->queue->capacity;
-    if (index < 0)
-    {
-        index += room->queue->capacity;
-    }
-
     while (room->queue->size > 0)
     {
-        // Message *message = room->queue->data[index];
+        int index = (room->queue->tail - room->queue->size) % room->queue->capacity;
+        if (index < 0)
+        {
+            index += room->queue->capacity;
+        }
+        Message *message = room->queue->data[index];
 
-        // SerializedGameObject *object = NULL;
-        // int *collider;
-        // int *renderer;
-        // switch (message->type)
-        // {
-        // case NONE:
-        //     printf("none\n");
-        //     break;
-        // case GAME_OBJECT:
-        //     printf("updating gameobject\n");
-        //     object = (SerializedGameObject *)message->data;
-        //     collider = message->data + sizeof(SerializedGameObject);
-        //     renderer = message->data + sizeof(SerializedGameObject) + object->collider.derived.len;
-        //     AGameObject->Deserialize(object, collider, renderer);
-        //     break;
-        // default:
-        //     break;
-        // }
+        SerializedGameObject *object = NULL;
+        int *collider;
+        int *renderer;
 
-        // index++;
-        // room->queue->size--;
-        // free(message);
+        puts("Processing data");
+        // object = (SerializedGameObject *)message->data;
+        // collider = message->data + sizeof(SerializedGameObject);
+        // renderer = message->data + sizeof(SerializedGameObject) + object->collider.derived.len;
+        SerializedGameObject data;
+        memcpy(&data, message->data, sizeof(SerializedGameObject));
+
+        int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
+        memcpy(ad_data, message->data + sizeof(SerializedGameObject), data.collider.derived.len + data.renderer.derived.len);
+
+        AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
+
+        room->queue->size--;
+        free(ad_data);
+        free(message->data);
+        free(message);
+        room->queue->data[index] = NULL;
     }
     SDL_UnlockMutex(room->queue->mutex);
 }
@@ -210,7 +209,7 @@ static void DeleteRoom(Room *room)
                 break;
             }
             room->server->rooms[i] = room->server->rooms[room->server->rooms_size];
-            printf("Room deleted room %d\n", room->room_id);
+            printf("Room deleted room %lld\n", room->room_id);
             break;
         }
     }
@@ -224,7 +223,7 @@ static void DeleteRoom(Room *room)
  * @param room_id - room id
  * @return Room* if room with the given id exists, otherwise NULL
  */
-static Room *GetRoom(Server *server, Uint32 room_id)
+static Room *GetRoom(Server *server, ull room_id)
 {
     for (int i = 0; i < server->rooms_size; i++)
     {
@@ -256,11 +255,14 @@ static void JoinClient(Room *room, ServerClient *client)
     room->clients = realloc(room->clients, sizeof(ServerClient *) * (room->clients_size + 1));
     if (room->clients == NULL)
     {
-        ERROR_EXIT("Couldn't allocate memory for room %d clients!\n", room->room_id);
+        ERROR_EXIT("Couldn't allocate memory for room %lld clients!\n", room->room_id);
     }
 
     room->clients[room->clients_size] = client;
     room->clients_size++;
+
+    client->room = room;
+    puts("Client joined room");
 }
 
 /**
@@ -284,6 +286,7 @@ static void RemoveClient(Room *room, ServerClient *client)
         }
     }
     free(client);
+    puts("Client removed from room");
 }
 
 struct ARoom ARoom[1] = {{Init,

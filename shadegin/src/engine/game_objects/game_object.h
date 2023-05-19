@@ -16,15 +16,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include "../util.h"
 
 #include "collider/collider.h"
 #include "renderer/renderer.h"
-#include "../networking/server.h"
 
 typedef struct SerializedGameObject SerializedGameObject;
 struct SerializedGameObject
 {
-    int id;
+    ull id;
     vec3 position;
     vec3 velocity;
     float mass;
@@ -36,7 +36,7 @@ struct SerializedGameObject
 typedef struct GameObject GameObject;
 struct GameObject
 {
-    int id;
+    ull id;
 
     /**
      * Vector 3 position of object in world space

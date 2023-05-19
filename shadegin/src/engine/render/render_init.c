@@ -35,7 +35,8 @@ SDL_Window *render_init_window(u32 width, u32 height)
         ERROR_EXIT("window creation failed: %s\n", SDL_GetError());
     }
 
-    if (SDL_GL_CreateContext(window) == NULL)
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if (context == NULL)
     {
         ERROR_EXIT("failed to create window: %s\n", SDL_GetError());
     }

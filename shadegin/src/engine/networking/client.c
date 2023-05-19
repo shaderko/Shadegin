@@ -10,6 +10,7 @@
  */
 
 #include "../util.h"
+#include "../types.h"
 
 #include "client.h"
 #include "server.h"
@@ -92,14 +93,20 @@ static int Connect(Client *client)
     return 0;
 }
 
-static int Login(Client client)
+static int Login(Client *client)
 {
     puts("Logging in.");
     return 0;
 }
 
-static void JoinRoom(Client *client, Uint32 room_id)
+static void JoinRoom(Client *client, ull room_id)
 {
+    // REMOVE AFTER TODO:
+    if (client->room_id != 0)
+    {
+        return;
+    }
+
     if (client == NULL)
     {
         return;
@@ -132,15 +139,15 @@ static void JoinRoom(Client *client, Uint32 room_id)
             Message *message = malloc(sizeof(Message));
             memcpy(message, packet->data, sizeof(Message));
 
-            if (message->type != JOIN_ROOM_RESPONSE)
+            if (message->type != JOIN_ROOM_RESPONSE && message->type != CREATE_ROOM_RESPONSE)
             {
-                printf("problem\n");
+                puts("Problem");
                 free(message);
                 break;
             }
 
-            client->id = message->data;
-            printf("room id %d\n", client->id);
+            client->room_id = (ull)message->data;
+            printf("room id %lld\n", client->room_id);
             free(message);
 
             break;
@@ -152,37 +159,37 @@ static void JoinRoom(Client *client, Uint32 room_id)
 
 static void SendObject(Client *client, GameObject *object)
 {
-    // printf("sending game object %d\n", object->id);
-    // if (client->room_id <= 0)
-    // {
-    //     printf("no room id\n");
-    //     return;
-    // }
+    printf("sending game object %lld\n", object->id);
+    if (client->room_id <= 0)
+    {
+        printf("no room id\n");
+        return;
+    }
 
-    // SerializedDerived derived = AGameObject->Serialize(object);
-    // Message message = {client->id, client->room_id, GAME_OBJECT, derived.len, NULL};
-    // SerializedGameObject *xd = derived.data;
-    // printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
+    SerializedDerived derived = AGameObject->Serialize(object);
+    Message message = {client->id, DATA_RESPONSE, derived.len, NULL};
+    SerializedGameObject *xd = derived.data;
+    printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
 
-    // UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
+    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
 
-    // packet->address.host = client->ip.host;
-    // packet->address.port = client->ip.port;
-    // memcpy(packet->data, &message, sizeof(Message));
-    // memcpy(packet->data + sizeof(Message), derived.data, derived.len);
-    // packet->len = sizeof(Message) + derived.len;
+    packet->address.host = client->ip.host;
+    packet->address.port = client->ip.port;
+    memcpy(packet->data, &message, sizeof(Message));
+    memcpy(packet->data + sizeof(Message), derived.data, derived.len);
+    packet->len = sizeof(Message) + derived.len;
 
-    // printf("sending %lu bytes\n", derived.len);
+    printf("sending %lu bytes\n", derived.len);
 
-    // if (SDLNet_UDP_Send(client->server, -1, packet) == 0)
-    // {
-    //     printf("Error sending packet\n");
-    //     return;
-    // }
+    if (SDLNet_UDP_Send(client->server, -1, packet) == 0)
+    {
+        printf("Error sending packet\n");
+        return;
+    }
     printf("Packet sent 2\n");
 
-    // free(derived.data);
-    // SDLNet_FreePacket(packet);
+    free(derived.data);
+    SDLNet_FreePacket(packet);
 }
 
 struct AClient AClient[1] =
