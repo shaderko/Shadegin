@@ -2,11 +2,13 @@
 
 static ThreadPool thread_pool = {0};
 
-void thread_pool_cleanup() {
+void thread_pool_cleanup()
+{
     thread_pool.should_exit = 1;
     pthread_cond_broadcast(&thread_pool.cond);
 
-    for (int i = 0; i < thread_pool.num_workers; i++) {
+    for (int i = 0; i < thread_pool.num_workers; i++)
+    {
         pthread_join(thread_pool.threads[i].id, NULL);
     }
 
@@ -14,18 +16,22 @@ void thread_pool_cleanup() {
     free(thread_pool.queue.tasks);
 }
 
-int get_index() {
+int get_index()
+{
     int index = (thread_pool.queue.tail - thread_pool.queue.size) % thread_pool.queue.capacity;
-    if (index < 0) {
+    if (index < 0)
+    {
         index += thread_pool.queue.capacity;
     }
     return index;
 }
 
-Task get_task() {
+Task get_task()
+{
     Task task = {0};
 
-    if (thread_pool.queue.size <= 0) {
+    if (thread_pool.queue.size <= 0)
+    {
         return task;
     }
     task = thread_pool.queue.tasks[get_index()];
@@ -34,32 +40,40 @@ Task get_task() {
     return task;
 }
 
-Thread* get_self(int thread_id) {
-    for (int i = 0; i < thread_pool.num_workers; i++) {
-        if (thread_id == thread_pool.threads[i].id_int) {
+Thread *get_self(int thread_id)
+{
+    for (int i = 0; i < thread_pool.num_workers; i++)
+    {
+        if (thread_id == thread_pool.threads[i].id_int)
+        {
             return &thread_pool.threads[i];
         }
     }
     return NULL;
 }
 
-void* worker(void* arg) {
-    int thread_id = (int) arg;
-    Thread* thread = get_self(thread_id);
-    if (thread == NULL) {
-        printf("worker %i not found!\n", thread_id);
+void *worker(void *arg)
+{
+    int *thread_id = (int *)arg; // Changed this from (int) can't debug rn, but it should be fine
+    Thread *thread = get_self(*thread_id);
+    if (thread == NULL)
+    {
+        printf("worker %i not found!\n", *thread_id);
         return NULL;
     }
-    while (1) {
+    while (1)
+    {
         pthread_mutex_lock(&thread_pool.mutex);
-        while (thread_pool.queue.size <= 0 && !thread_pool.should_exit) {
+        while (thread_pool.queue.size <= 0 && !thread_pool.should_exit)
+        {
             // printf("worker %i is waiting for task\n", thread_id);
             thread->waiting = 1;
             pthread_cond_wait(&thread_pool.cond, &thread_pool.mutex);
         }
         // printf("worker %i is processing task\n", thread_id);
         thread->waiting = 0;
-        if (thread_pool.should_exit) {
+        if (thread_pool.should_exit)
+        {
             pthread_mutex_unlock(&thread_pool.mutex);
             pthread_exit(NULL);
         }
@@ -67,7 +81,8 @@ void* worker(void* arg) {
         Task task = get_task();
 
         pthread_mutex_unlock(&thread_pool.mutex);
-        if (task.function != NULL && !task.completed) {
+        if (task.function != NULL && !task.completed)
+        {
             task.completed = 1;
             task.function(task.args);
             free(task.args);
@@ -75,7 +90,8 @@ void* worker(void* arg) {
     }
 }
 
-void thread_pool_init(int workers, int capacity) {
+void thread_pool_init(int workers, int capacity)
+{
     thread_pool.num_workers = workers;
     thread_pool.threads = calloc(thread_pool.num_workers, sizeof(Thread));
     thread_pool.queue.capacity = capacity;
@@ -90,9 +106,10 @@ void thread_pool_init(int workers, int capacity) {
         printf("\n cond init failed\n");
     }
 
-    for (int i = 0; i < thread_pool.num_workers; i++) {
+    for (int i = 0; i < thread_pool.num_workers; i++)
+    {
         thread_pool.threads[i].id_int = i;
-        pthread_create(&thread_pool.threads[i].id, NULL, worker, (void*)i);
+        pthread_create(&thread_pool.threads[i].id, NULL, worker, (void *)i);
     }
 }
 
@@ -107,25 +124,32 @@ void sleep(int ms)
     nanosleep(&waittime, NULL);
 }
 
-void await_workers() {
+void await_workers()
+{
     pthread_cond_broadcast(&thread_pool.cond);
     int free_workers = 0;
-    for (int i = 0; i < thread_pool.num_workers; i++) {
-        if (thread_pool.threads[i].waiting == 1) {
+    for (int i = 0; i < thread_pool.num_workers; i++)
+    {
+        if (thread_pool.threads[i].waiting == 1)
+        {
             free_workers++;
         }
     }
-    if (free_workers == thread_pool.num_workers) {
+    if (free_workers == thread_pool.num_workers)
+    {
         return;
     }
     sleep(1);
     await_workers();
 }
 
-void wait_free_worker() {
+void wait_free_worker()
+{
     pthread_cond_broadcast(&thread_pool.cond);
-    for (int i = 0; i < thread_pool.num_workers; i++) {
-        if (thread_pool.threads->waiting == 1) {
+    for (int i = 0; i < thread_pool.num_workers; i++)
+    {
+        if (thread_pool.threads->waiting == 1)
+        {
             return;
         }
     }
@@ -134,16 +158,20 @@ void wait_free_worker() {
     return;
 }
 
-void finished() {
-    while (thread_pool.queue.size != 0) {
+void finished()
+{
+    while (thread_pool.queue.size != 0)
+    {
         sleep(1);
     }
     await_workers();
     return;
 }
 
-void add_task(Task task) {
-    if (thread_pool.queue.size == thread_pool.queue.capacity - 1) {
+void add_task(Task task)
+{
+    if (thread_pool.queue.size == thread_pool.queue.capacity - 1)
+    {
         printf("waiting for worker to become available\n");
         wait_free_worker();
         printf("worker freed, continuing\n");

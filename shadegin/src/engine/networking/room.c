@@ -38,10 +38,10 @@ static int RoomGame(void *data)
     // AScene->Add(room->scene, object2);
     // AScene->WriteToFile(room->scene, "file");
     AScene->ReadFile(room->scene, "file");
-    // for (int i = 0; i < scene->objects_size; i++)
-    // {
-    //     printf("%i\n", scene->objects[i]->id);
-    // }
+    for (int i = 0; i < room->scene->objects_size; i++)
+    {
+        printf("%i\n", room->scene->objects[i]->id);
+    }
 
     printf("Map loaded, starting main loop\n");
 
@@ -54,7 +54,6 @@ static int RoomGame(void *data)
 
         // Do all the game stuff
         AScene->Update(room->scene);
-        // AGameObject->UpdateGameObjects();
 
         // Send game objects
         ARoom->SendData(room);
@@ -160,15 +159,11 @@ static void ProcessData(Room *room)
         int *renderer;
 
         puts("Processing data");
-        // object = (SerializedGameObject *)message->data;
-        // collider = message->data + sizeof(SerializedGameObject);
-        // renderer = message->data + sizeof(SerializedGameObject) + object->collider.derived.len;
+
         SerializedGameObject data;
         memcpy(&data, message->data, sizeof(SerializedGameObject));
-
         int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
         memcpy(ad_data, message->data + sizeof(SerializedGameObject), data.collider.derived.len + data.renderer.derived.len);
-
         AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
 
         room->queue->size--;
@@ -183,6 +178,24 @@ static void ProcessData(Room *room)
 static void SendData(Room *room)
 {
     Server *server = AServer->GetServer();
+
+    if (room->clients_size <= 0)
+    {
+        return;
+    }
+
+    for (int i = 0; i < room->scene->objects_size; i++)
+    {
+        GameObject *object = room->scene->objects[i];
+        for (int j = 0; j < room->clients_size; j++)
+        {
+            ServerClient *client = room->clients[j];
+
+            AServer->SendObject(server->server, client->address, object, client->id);
+        }
+    }
+
+    printf("Sent %d of objects to %d clients\n", room->scene->objects_size, room->clients_size);
 }
 
 /**

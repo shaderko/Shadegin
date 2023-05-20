@@ -71,6 +71,7 @@ static void Init()
 
 static void Response(IPaddress address, int client_id, MessageType type, int size, int *data)
 {
+    // Packet could be allocated when the server is initialized TODO:
     Message message = {client_id, type, size, data};
 
     UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message));
@@ -94,7 +95,7 @@ static ServerClient *AddClient(IPaddress address)
     server->clients = realloc(server->clients, sizeof(ServerClient) * (server->clients_size + 1));
     if (server->clients == NULL)
     {
-        // Close server TODO:
+        // Free the server TODO: low prio
         ERROR_EXIT("Server clients couldn't be allocated!\n");
     }
 
@@ -128,8 +129,13 @@ static ServerClient *GetClient(int client_id, IPaddress address)
 
 static void ReceiveData(UDPpacket *packet)
 {
-    if (SDLNet_UDP_Recv(server->server, packet) <= 0)
+    int packets = SDLNet_UDP_Recv(server->server, packet);
+    if (packets <= 0)
     {
+        if (packets == -1)
+        {
+            ERROR_EXIT("Error receiving data: %s\n", SDLNet_GetError());
+        }
         return;
     }
 
@@ -143,7 +149,7 @@ static void ReceiveData(UDPpacket *packet)
     {
         client = AServer->AddClient(packet->address);
         // Respond with connection accept
-        AServer->Response(packet->address, client->client_id, CONNECTION_RESPONSE, 0, NULL);
+        AServer->Response(packet->address, client->id, CONNECTION_RESPONSE, 0, NULL);
 
         free(message);
         return;
@@ -158,7 +164,7 @@ static void ReceiveData(UDPpacket *packet)
     client = AServer->GetClient(message->client_id, packet->address);
     if (client == NULL)
     {
-        // TODO: client has been disconnected
+        // TODO: client has been disconnected, delete from the server clients list
         puts("client disconnected");
         free(message);
         return;
@@ -169,13 +175,14 @@ static void ReceiveData(UDPpacket *packet)
     {
     case CREATE_ROOM_REQUEST:
         room = ARoom->Init(server);
-        client->room = room;
+        ARoom->JoinClient(room, client);
+        printf("client address 2 %d\n", client->address.host);
         if (room == NULL)
         {
-            AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, 0, NULL);
+            AServer->Response(packet->address, client->id, ERROR_NOTIFICATION, 0, NULL);
             // Respond with failure to create room
         }
-        AServer->Response(packet->address, client->client_id, CREATE_ROOM_RESPONSE, sizeof(ull), room->room_id);
+        AServer->Response(packet->address, client->id, CREATE_ROOM_RESPONSE, sizeof(ull), room->room_id);
         // Respond with success
         free(message);
         break;
@@ -184,12 +191,12 @@ static void ReceiveData(UDPpacket *packet)
         room = ARoom->GetRoom(server, message->data);
         if (room == NULL)
         {
-            AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, 0, NULL);
+            AServer->Response(packet->address, client->id, ERROR_NOTIFICATION, 0, NULL);
             break;
         }
         // Add client to room, and add room to client
         ARoom->JoinClient(room, client);
-        AServer->Response(packet->address, client->client_id, JOIN_ROOM_RESPONSE, sizeof(ull), room->room_id);
+        AServer->Response(packet->address, client->id, JOIN_ROOM_RESPONSE, sizeof(ull), room->room_id);
         free(message);
         break;
 
@@ -223,12 +230,39 @@ static void ReceiveData(UDPpacket *packet)
         char error_msg[] = "Room doesn't exist or failed to create.";
 
         printf("%s\n", error_msg);
-        AServer->Response(packet->address, client->client_id, ERROR_NOTIFICATION, sizeof(error_msg), &error_msg);
+        AServer->Response(packet->address, client->id, ERROR_NOTIFICATION, sizeof(error_msg), &error_msg);
 
         return;
     }
 
-    AServer->Response(packet->address, client->client_id, CONNECTION_RESPONSE, 0, NULL);
+    // AServer->Response(packet->address, client->id, CONNECTION_RESPONSE, 0, NULL);
+}
+
+static void SendObject(UDPsocket socket, IPaddress address, GameObject *object, int client_id)
+{
+    SerializedDerived derived = AGameObject->Serialize(object);
+    Message message = {client_id, DATA_RESPONSE, derived.len, NULL};
+    SerializedGameObject *xd = derived.data;
+    printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
+
+    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
+
+    packet->address.host = address.host;
+    packet->address.port = address.port;
+    memcpy(packet->data, &message, sizeof(Message));
+    memcpy(packet->data + sizeof(Message), derived.data, derived.len);
+    packet->len = sizeof(Message) + derived.len;
+
+    printf("sending %lu bytes\n", derived.len + sizeof(Message));
+
+    if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
+    {
+        printf("Error sending packet\n");
+        return;
+    }
+
+    free(derived.data);
+    SDLNet_FreePacket(packet);
 }
 
 static Server *GetServer()
@@ -237,4 +271,4 @@ static Server *GetServer()
 }
 
 struct AServer AServer[1] =
-    {{Init, GetServer, Response, AddClient, GetClient, ReceiveData}};
+    {{Init, Response, AddClient, GetClient, ReceiveData, SendObject, GetServer}};

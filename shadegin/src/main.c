@@ -14,6 +14,10 @@
 #include "engine/game_objects/game_object.h"
 #include "engine/networking/server.h"
 #include "engine/networking/client.h"
+#include "engine/game_objects/map/scene.h"
+
+// #include <stdlib.h>
+// #include "../leak_detector_c.h"
 
 int main(int argc, char *argv[])
 {
@@ -42,8 +46,6 @@ int main(int argc, char *argv[])
     Scene *scene = AScene->Init(&(vec3){0, 0, 0});
     AScene->ReadFile(scene, "file");
 
-    // GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
-
     while (running)
     {
         Uint32 startTime = SDL_GetTicks();
@@ -62,14 +64,6 @@ int main(int argc, char *argv[])
                 if (mouse_down)
                 {
                     AClient->JoinRoom(client, 0);
-                }
-                else
-                {
-                    for (int i = 0; i < scene->objects_size; i++)
-                    {
-                        GameObject *object = scene->objects[i];
-                        AClient->SendObject(client, object);
-                    }
                 }
                 mouse_down = !mouse_down;
             case SDL_MOUSEWHEEL:
@@ -134,7 +128,11 @@ int main(int argc, char *argv[])
         // camera_follow_target();
 
         camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
-        AGameObject->UpdateGameObjects();
+        // AGameObject->UpdateGameObjects();
+        for (int i = 0; i < scene->objects_size; i++)
+        {
+            AClient->ReceiveObject(client);
+        }
 
         render_begin();
         // render_begin_pixelated();
@@ -161,6 +159,11 @@ int main(int argc, char *argv[])
             SDL_Delay(16 - elapsedTime);
             // float fps = 1000.0f / (16 - elapsedTime);
             // printf("FPS: %.2f\n", fps);
+        }
+        else
+        {
+            float fps = 1000.0f / elapsedTime;
+            printf("FPS too low %.2f\n", fps);
         }
     }
 

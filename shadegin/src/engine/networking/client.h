@@ -35,6 +35,7 @@ struct AClient
     int (*Connect)(Client *client);
     int (*Login)(Client *client);
     void (*JoinRoom)(Client *client, ull room_id);
+    void (*ReceiveObject)(Client *client);
     void (*SendObject)(Client *client, GameObject *object);
 };
 

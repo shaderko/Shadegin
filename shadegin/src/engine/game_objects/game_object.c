@@ -194,7 +194,7 @@ static SerializedDerived Serialize(GameObject *object)
  * @param renderer
  * @return GameObject*
  */
-static GameObject *Deserialize(SerializedGameObject *object, SerializedDerived *collider, SerializedDerived *renderer)
+static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer)
 {
     for (int x = 0; x < GameObjectsSize; x++)
     {
@@ -209,6 +209,14 @@ static GameObject *Deserialize(SerializedGameObject *object, SerializedDerived *
         }
     }
     printf("object wans't found, creating\n");
+
+    printf("%lld\n", object->id);
+
+    if (collider == NULL || renderer == NULL)
+    {
+        printf("collider or renderer is null\n");
+        return NULL;
+    }
 
     GameObject *new_obj = AGameObject->Create(object->is_static, object->mass, object->position);
     new_obj->id = object->id;

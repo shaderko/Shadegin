@@ -37,7 +37,9 @@ static Client *Init()
     }
 
     client->id = -1;
-    client->room_id = 0; // Change after TODO:
+    client->room_id = 0;
+
+    // TODO: use threads to connect and login, so the app doesn't freeze
     if (AClient->Connect(client) || AClient->Login(client))
     {
         free(client);
@@ -141,7 +143,7 @@ static void JoinRoom(Client *client, ull room_id)
 
             if (message->type != JOIN_ROOM_RESPONSE && message->type != CREATE_ROOM_RESPONSE)
             {
-                puts("Problem");
+                puts("Problem creating/joining room");
                 free(message);
                 break;
             }
@@ -157,6 +159,84 @@ static void JoinRoom(Client *client, ull room_id)
     SDLNet_FreePacket(packet);
 }
 
+static void ReceiveObject(Client *client)
+{
+    if (client == NULL || client->room_id <= 0)
+    {
+        puts("no room id");
+        return;
+    }
+
+    UDPpacket *packet = SDLNet_AllocPacket(512);
+    if (packet == NULL)
+    {
+        ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
+    }
+
+    // while (1)
+    // {
+    //     if (SDLNet_UDP_Recv(client->server, packet) == 1)
+    //     {
+    //         puts("Receiving data.");
+
+    //         Message *message = malloc(sizeof(Message));
+    //         memcpy(message, packet->data, sizeof(Message));
+
+    //         if (message->type != DATA_RESPONSE)
+    //         {
+    //             printf("Problem receiving object %i\n", message->type);
+    //             free(message);
+    //             SDLNet_FreePacket(packet);
+    //             return;
+    //         }
+
+    //         SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
+    //         memcpy(object, packet->data + sizeof(Message), sizeof(SerializedGameObject));
+
+    //         printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
+    //         AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
+
+    //         free(message);
+    //         free(object);
+    //     }
+    //     else
+    //     {
+    //         puts("No packets received.");
+    //     }
+    //     SDL_Delay(10);
+    // }
+    // SDLNet_FreePacket(packet);
+    if (SDLNet_UDP_Recv(client->server, packet) <= 0)
+    {
+        puts("No packets received.");
+        SDLNet_FreePacket(packet);
+        return;
+    }
+
+    puts("Receiving data.");
+
+    Message *message = malloc(sizeof(Message));
+    memcpy(message, packet->data, sizeof(Message));
+
+    if (message->type != DATA_RESPONSE)
+    {
+        puts("Problem receiving object");
+        free(message);
+        SDLNet_FreePacket(packet);
+        return;
+    }
+
+    SerializedGameObject *object = malloc(message->length);
+    memcpy(object, packet->data + sizeof(Message), message->length);
+
+    printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
+    AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
+
+    free(message);
+    free(object);
+    SDLNet_FreePacket(packet);
+}
+
 static void SendObject(Client *client, GameObject *object)
 {
     printf("sending game object %lld\n", object->id);
@@ -166,31 +246,33 @@ static void SendObject(Client *client, GameObject *object)
         return;
     }
 
-    SerializedDerived derived = AGameObject->Serialize(object);
-    Message message = {client->id, DATA_RESPONSE, derived.len, NULL};
-    SerializedGameObject *xd = derived.data;
-    printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
+    AServer->SendObject(client->server, client->ip, object, client->id);
 
-    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
+    // SerializedDerived derived = AGameObject->Serialize(object);
+    // Message message = {client->id, DATA_RESPONSE, derived.len, NULL};
+    // SerializedGameObject *xd = derived.data;
+    // printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
 
-    packet->address.host = client->ip.host;
-    packet->address.port = client->ip.port;
-    memcpy(packet->data, &message, sizeof(Message));
-    memcpy(packet->data + sizeof(Message), derived.data, derived.len);
-    packet->len = sizeof(Message) + derived.len;
+    // UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
 
-    printf("sending %lu bytes\n", derived.len);
+    // packet->address.host = client->ip.host;
+    // packet->address.port = client->ip.port;
+    // memcpy(packet->data, &message, sizeof(Message));
+    // memcpy(packet->data + sizeof(Message), derived.data, derived.len);
+    // packet->len = sizeof(Message) + derived.len;
 
-    if (SDLNet_UDP_Send(client->server, -1, packet) == 0)
-    {
-        printf("Error sending packet\n");
-        return;
-    }
-    printf("Packet sent 2\n");
+    // printf("sending %lu bytes\n", derived.len);
 
-    free(derived.data);
-    SDLNet_FreePacket(packet);
+    // if (SDLNet_UDP_Send(client->server, -1, packet) == 0)
+    // {
+    //     printf("Error sending packet\n");
+    //     return;
+    // }
+    // printf("Packet sent 2\n");
+
+    // free(derived.data);
+    // SDLNet_FreePacket(packet);
 }
 
 struct AClient AClient[1] =
-    {{Init, Connect, Login, JoinRoom, SendObject}};
+    {{Init, Connect, Login, JoinRoom, ReceiveObject, SendObject}};
