@@ -30,21 +30,21 @@ int main(int argc, char *argv[])
         }
     }
 
-    render_init();
-
     Client *client = AClient->Init();
     if (client == NULL)
     {
         return 0;
     }
 
+    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
+    AScene->ReadFile(scene, "file");
+
+    render_init();
+
     bool running = true;
     bool mouse_down = false;
 
     Camera *camera = get_camera();
-
-    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
-    AScene->ReadFile(scene, "file");
 
     while (running)
     {
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
                 if (event.key.keysym.sym == SDLK_SPACE) // spacebar pressed
                 {
                     // Your code logic for spacebar key press
-                    AClient->JoinRoom(client, 104616813420143);
+                    AClient->JoinRoom(client, 73280732010223);
                     // Add your desired actions here
                 }
                 else if (event.key.keysym.sym == SDLK_w)
@@ -129,10 +129,6 @@ int main(int argc, char *argv[])
 
         camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
         // AGameObject->UpdateGameObjects();
-        for (int i = 0; i < scene->objects_size; i++)
-        {
-            AClient->ReceiveObject(client);
-        }
 
         render_begin();
         // render_begin_pixelated();

@@ -74,12 +74,15 @@ struct ARoom
      */
     Room *(*Init)(Server *server);
 
+    /**
+     * Main game loop for a game
+     */
+    void (*RoomGame)(void *data);
+
     void (*ProcessData)(Room *room);
     void (*SendData)(Room *room);
 
     void (*DeleteRoom)(Room *room);
-
-    int (*RoomGame)(void *data);
 
     /**
      * Get room with room id

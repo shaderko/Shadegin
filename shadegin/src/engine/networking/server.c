@@ -253,7 +253,7 @@ static void SendObject(UDPsocket socket, IPaddress address, GameObject *object, 
     memcpy(packet->data + sizeof(Message), derived.data, derived.len);
     packet->len = sizeof(Message) + derived.len;
 
-    printf("sending %lu bytes\n", derived.len + sizeof(Message));
+    printf("sending %zu bytes\n", derived.len + sizeof(Message));
 
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {

@@ -103,6 +103,15 @@ static void ReadFile(Scene *scene, const char *file)
     fclose(in);
 }
 
+// Load map
+// GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
+// GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
+// GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
+// AScene->Add(room->scene, object);
+// AScene->Add(room->scene, object1);
+// AScene->Add(room->scene, object2);
+// AScene->WriteToFile(room->scene, "file");
+
 struct AScene AScene[1] =
     {{
         Init,

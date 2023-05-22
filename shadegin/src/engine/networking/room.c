@@ -18,68 +18,6 @@
 #include "../game_objects/map/scene.h"
 #include "../game_objects/game_object.h"
 
-/**
- * @brief Main game loop for server
- *
- * @param room
- */
-static int RoomGame(void *data)
-{
-    Room *room = (Room *)data;
-
-    printf("Loading map for room %lld\n", room->room_id);
-    room->scene = AScene->Init(&((vec3){0, 0, 0}));
-    // Load map
-    // GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
-    // GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
-    // GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
-    // AScene->Add(room->scene, object);
-    // AScene->Add(room->scene, object1);
-    // AScene->Add(room->scene, object2);
-    // AScene->WriteToFile(room->scene, "file");
-    AScene->ReadFile(room->scene, "file");
-    for (int i = 0; i < room->scene->objects_size; i++)
-    {
-        printf("%i\n", room->scene->objects[i]->id);
-    }
-
-    printf("Map loaded, starting main loop\n");
-
-    while (room->is_active)
-    {
-        Uint32 startTime = SDL_GetTicks();
-
-        // Receive updates
-        ARoom->ProcessData(room);
-
-        // Do all the game stuff
-        AScene->Update(room->scene);
-
-        // Send game objects
-        ARoom->SendData(room);
-
-        Uint32 currentTime = SDL_GetTicks();
-        Uint32 elapsedTime = currentTime - startTime;
-        if (elapsedTime < 16)
-        {
-            SDL_Delay(16 - elapsedTime);
-            // float fps = 1000.0f / (16 - elapsedTime);
-            // printf("Room %d fps: %.2f\n", room->room_id, fps);
-        }
-        else
-        {
-            float fps = 1000.0f / elapsedTime;
-            printf("Room %lld is clogged, fps: %.2f\n", room->room_id, fps);
-        }
-    }
-
-    free(data);
-    ARoom->DeleteRoom(room);
-    SDL_DetachThread(room->thread);
-
-    return 0;
-}
-
 static Room *Init(Server *server)
 {
     printf("Creating room\n");
@@ -124,17 +62,50 @@ static Room *Init(Server *server)
     server->rooms[server->rooms_size] = room;
     server->rooms_size++;
 
-    Room *thread_data = malloc(sizeof(Room *));
-    if (thread_data == NULL)
-    {
-        ERROR_EXIT("Couldn't allocate memory for thread data, room %lld!\n", room->room_id);
-    }
-    thread_data = room;
-    room->thread = SDL_CreateThread(RoomGame, "Thread", thread_data);
+    room->thread = SDL_CreateThread(ARoom->RoomGame, "Thread", room);
 
     printf("Room created with id %lld\n", room->room_id);
 
     return room;
+}
+
+static void RoomGame(Room *room)
+{
+    printf("Loading map for room %lld\n", room->room_id);
+
+    room->scene = AScene->Init(&((vec3){0, 0, 0}));
+    AScene->ReadFile(room->scene, "file");
+
+    printf("Map loaded, starting main loop\n");
+
+    while (room->is_active)
+    {
+        Uint32 startTime = SDL_GetTicks();
+
+        // Receive updates
+        ARoom->ProcessData(room);
+
+        // Do all the game stuff
+        AScene->Update(room->scene);
+
+        // Send game objects
+        ARoom->SendData(room);
+
+        Uint32 currentTime = SDL_GetTicks();
+        Uint32 elapsedTime = currentTime - startTime;
+        if (elapsedTime < 16)
+        {
+            SDL_Delay(16 - elapsedTime);
+        }
+        else
+        {
+            float fps = 1000.0f / elapsedTime;
+            printf("Room %lld is clogged, fps: %.2f\n", room->room_id, fps);
+        }
+    }
+
+    ARoom->DeleteRoom(room);
+    SDL_DetachThread(room->thread);
 }
 
 static void ProcessData(Room *room)
@@ -143,8 +114,8 @@ static void ProcessData(Room *room)
     {
         ERROR_EXIT("Error processing data.\n");
     }
-    SDL_LockMutex(room->queue->mutex);
 
+    SDL_LockMutex(room->queue->mutex);
     while (room->queue->size > 0)
     {
         int index = (room->queue->tail - room->queue->size) % room->queue->capacity;
@@ -152,13 +123,12 @@ static void ProcessData(Room *room)
         {
             index += room->queue->capacity;
         }
+
         Message *message = room->queue->data[index];
 
         SerializedGameObject *object = NULL;
         int *collider;
         int *renderer;
-
-        puts("Processing data");
 
         SerializedGameObject data;
         memcpy(&data, message->data, sizeof(SerializedGameObject));
@@ -166,10 +136,11 @@ static void ProcessData(Room *room)
         memcpy(ad_data, message->data + sizeof(SerializedGameObject), data.collider.derived.len + data.renderer.derived.len);
         AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
 
-        room->queue->size--;
         free(ad_data);
         free(message->data);
         free(message);
+
+        room->queue->size--;
         room->queue->data[index] = NULL;
     }
     SDL_UnlockMutex(room->queue->mutex);
@@ -303,10 +274,10 @@ static void RemoveClient(Room *room, ServerClient *client)
 }
 
 struct ARoom ARoom[1] = {{Init,
+                          RoomGame,
                           ProcessData,
                           SendData,
                           DeleteRoom,
-                          RoomGame,
                           GetRoom,
                           JoinClient,
                           RemoveClient}};

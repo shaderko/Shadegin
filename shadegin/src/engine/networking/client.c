@@ -46,6 +46,9 @@ static Client *Init()
         ERROR_EXIT("Couldn't connect to server.");
     }
 
+    // TODO: use threads to receive data from server
+    SDL_CreateThread(AClient->ReceiveObject, "ReceiveObject", client);
+
     return client;
 }
 
@@ -161,9 +164,9 @@ static void JoinRoom(Client *client, ull room_id)
 
 static void ReceiveObject(Client *client)
 {
-    if (client == NULL || client->room_id <= 0)
+    puts("thread started");
+    if (client == NULL)
     {
-        puts("no room id");
         return;
     }
 
@@ -173,68 +176,65 @@ static void ReceiveObject(Client *client)
         ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
     }
 
-    // while (1)
-    // {
-    //     if (SDLNet_UDP_Recv(client->server, packet) == 1)
-    //     {
-    //         puts("Receiving data.");
-
-    //         Message *message = malloc(sizeof(Message));
-    //         memcpy(message, packet->data, sizeof(Message));
-
-    //         if (message->type != DATA_RESPONSE)
-    //         {
-    //             printf("Problem receiving object %i\n", message->type);
-    //             free(message);
-    //             SDLNet_FreePacket(packet);
-    //             return;
-    //         }
-
-    //         SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
-    //         memcpy(object, packet->data + sizeof(Message), sizeof(SerializedGameObject));
-
-    //         printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
-    //         AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
-
-    //         free(message);
-    //         free(object);
-    //     }
-    //     else
-    //     {
-    //         puts("No packets received.");
-    //     }
-    //     SDL_Delay(10);
-    // }
-    // SDLNet_FreePacket(packet);
-    if (SDLNet_UDP_Recv(client->server, packet) <= 0)
+    while (1)
     {
-        puts("No packets received.");
-        SDLNet_FreePacket(packet);
-        return;
+        if (client->room_id <= 0)
+        {
+            continue;
+        }
+
+        if (SDLNet_UDP_Recv(client->server, packet) == 1)
+        {
+            Message *message = malloc(sizeof(Message));
+            memcpy(message, packet->data, sizeof(Message));
+
+            if (message->type != DATA_RESPONSE)
+            {
+                printf("Problem receiving object %i\n", message->type);
+                free(message);
+                continue;
+            }
+
+            SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
+            memcpy(object, packet->data + sizeof(Message), sizeof(SerializedGameObject));
+
+            // printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
+            AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
+
+            free(message);
+            free(object);
+        }
     }
-
-    puts("Receiving data.");
-
-    Message *message = malloc(sizeof(Message));
-    memcpy(message, packet->data, sizeof(Message));
-
-    if (message->type != DATA_RESPONSE)
-    {
-        puts("Problem receiving object");
-        free(message);
-        SDLNet_FreePacket(packet);
-        return;
-    }
-
-    SerializedGameObject *object = malloc(message->length);
-    memcpy(object, packet->data + sizeof(Message), message->length);
-
-    printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
-    AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
-
-    free(message);
-    free(object);
     SDLNet_FreePacket(packet);
+    // if (SDLNet_UDP_Recv(client->server, packet) <= 0)
+    // {
+    //     puts("No packets received.");
+    //     SDLNet_FreePacket(packet);
+    //     return;
+    // }
+
+    // puts("Receiving data.");
+
+    // Message *message = malloc(sizeof(Message));
+    // memcpy(message, packet->data, sizeof(Message));
+
+    // if (message->type != DATA_RESPONSE)
+    // {
+    //     puts("Problem receiving object");
+    //     free(message);
+    //     SDLNet_FreePacket(packet);
+    //     return;
+    // }
+
+    // SerializedGameObject *object = malloc(message->length);
+    // memcpy(object, packet->data + sizeof(Message), message->length);
+
+    // printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
+    // AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
+
+    // free(message);
+    // free(object);
+    // SDLNet_FreePacket(packet);
 }
 
 static void SendObject(Client *client, GameObject *object)
