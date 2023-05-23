@@ -42,11 +42,11 @@ static Client *Init()
     // TODO: use threads to connect and login, so the app doesn't freeze
     if (AClient->Connect(client) || AClient->Login(client))
     {
+        SDLNet_UDP_Close(client->server);
         free(client);
         ERROR_EXIT("Couldn't connect to server.");
     }
 
-    // TODO: use threads to receive data from server
     SDL_CreateThread(AClient->ReceiveObject, "ReceiveObject", client);
 
     return client;
@@ -198,43 +198,13 @@ static void ReceiveObject(Client *client)
             SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
             memcpy(object, packet->data + sizeof(Message), sizeof(SerializedGameObject));
 
-            // printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
-            AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
+            AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data, NULL);
 
             free(message);
             free(object);
         }
     }
     SDLNet_FreePacket(packet);
-    // if (SDLNet_UDP_Recv(client->server, packet) <= 0)
-    // {
-    //     puts("No packets received.");
-    //     SDLNet_FreePacket(packet);
-    //     return;
-    // }
-
-    // puts("Receiving data.");
-
-    // Message *message = malloc(sizeof(Message));
-    // memcpy(message, packet->data, sizeof(Message));
-
-    // if (message->type != DATA_RESPONSE)
-    // {
-    //     puts("Problem receiving object");
-    //     free(message);
-    //     SDLNet_FreePacket(packet);
-    //     return;
-    // }
-
-    // SerializedGameObject *object = malloc(message->length);
-    // memcpy(object, packet->data + sizeof(Message), message->length);
-
-    // printf("received : %f, %f, %f\n", object->position[0], object->position[1], object->position[2]);
-    // AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data);
-
-    // free(message);
-    // free(object);
-    // SDLNet_FreePacket(packet);
 }
 
 static void SendObject(Client *client, GameObject *object)

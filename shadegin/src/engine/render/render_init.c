@@ -56,8 +56,8 @@ SDL_Window *render_init_window(u32 width, u32 height)
 
 void render_init_shaders(Render_State_Internal *state)
 {
-    state->shader_default = render_shader_create_name("./shaders/default");
-    state->shader_screen = render_shader_create_name("./shaders/screen");
+    state->shader_default = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/default");
+    state->shader_screen = render_shader_create_name("/Users/filiplukovic/Documents/projects/shadegin/shadegin/shaders/screen");
 
     camera_init(400, 10, (vec3){0, 0, 0}, NULL);
     Camera *camera = get_camera();

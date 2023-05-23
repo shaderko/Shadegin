@@ -88,8 +88,10 @@ static void Response(IPaddress address, int client_id, MessageType type, int siz
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
         printf("Error sending packet\n");
+        SDLNet_FreePacket(packet);
         return;
     }
+    SDLNet_FreePacket(packet);
 }
 
 static ServerClient *AddClient(IPaddress address)
@@ -221,8 +223,10 @@ static void ReceiveData(UDPpacket *packet)
             room->queue->tail = 0;
         }
         SDL_UnlockMutex(room->queue->mutex);
+        break;
 
     default:
+        free(message);
         break;
     }
 
@@ -258,7 +262,7 @@ static void SendObject(UDPsocket socket, IPaddress address, GameObject *object, 
 
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
-        printf("Error sending packet\n");
+        printf("Error sending object data\n");
         return;
     }
 

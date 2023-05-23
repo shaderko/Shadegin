@@ -21,6 +21,9 @@
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 
+typedef struct Scene Scene;
+// Defined for circular import
+
 typedef struct SerializedGameObject SerializedGameObject;
 struct SerializedGameObject
 {
@@ -104,7 +107,7 @@ struct AGameObject
      * If it does apply all variables
      */
     SerializedDerived (*Serialize)(GameObject *object);
-    GameObject *(*Deserialize)(SerializedGameObject *object, int *collider, int *renderer);
+    GameObject *(*Deserialize)(SerializedGameObject *object, int *collider, int *renderer, Scene *scene);
 };
 
 extern struct AGameObject AGameObject[1];

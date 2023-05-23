@@ -94,7 +94,7 @@ static void ReadFile(Scene *scene, const char *file)
         int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
 
         fread(ad_data, data.collider.derived.len + data.renderer.derived.len, 1, in);
-        AScene->Add(scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
+        AScene->Add(scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len, scene));
 
         free(ad_data);
     }
