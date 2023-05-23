@@ -24,7 +24,7 @@ static void Init()
     }
 
     server = malloc(sizeof(Server));
-    if (server == NULL)
+    if (!server)
     {
         free(server);
         ERROR_EXIT("Server memory couldn't be allocated!\n");
@@ -52,6 +52,7 @@ static void Init()
     UDPpacket *packet = SDLNet_AllocPacket(512);
     if (!packet)
     {
+        SDLNet_UDP_Close(server->server);
         free(server);
         ERROR_EXIT("Error allocating UDP packet: %s\n", SDLNet_GetError());
     }
@@ -67,6 +68,7 @@ static void Init()
 
     // Close the server socket
     SDLNet_UDP_Close(server->server);
+    free(server);
 }
 
 static void Response(IPaddress address, int client_id, MessageType type, int size, int *data)
@@ -194,7 +196,6 @@ static void ReceiveData(UDPpacket *packet)
             AServer->Response(packet->address, client->id, ERROR_NOTIFICATION, 0, NULL);
             break;
         }
-        // Add client to room, and add room to client
         ARoom->JoinClient(room, client);
         AServer->Response(packet->address, client->id, JOIN_ROOM_RESPONSE, sizeof(ull), room->room_id);
         free(message);
