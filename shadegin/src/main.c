@@ -16,8 +16,8 @@
 #include "engine/networking/client.h"
 #include "engine/game_objects/map/scene.h"
 
-// #include <stdlib.h>
-// #include "../leak_detector_c.h"
+#include <stdlib.h>
+#include "../leak_detector_c.h"
 
 int main(int argc, char *argv[])
 {

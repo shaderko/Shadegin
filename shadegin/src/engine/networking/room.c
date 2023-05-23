@@ -158,9 +158,17 @@ static void SendData(Room *room)
     for (int i = 0; i < room->scene->objects_size; i++)
     {
         GameObject *object = room->scene->objects[i];
+        if (!object)
+        {
+            ERROR_EXIT("Object is NULL!\n");
+        }
         for (int j = 0; j < room->clients_size; j++)
         {
             ServerClient *client = room->clients[j];
+            if (!client)
+            {
+                ERROR_EXIT("Client is NULL!\n");
+            }
 
             AServer->SendObject(server->server, client->address, object, client->id);
         }

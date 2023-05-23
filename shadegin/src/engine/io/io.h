@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef struct file {
+typedef struct file
+{
     char *data;
     size_t len;
     bool is_valid;

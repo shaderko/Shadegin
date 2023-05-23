@@ -263,10 +263,13 @@ static void SendObject(UDPsocket socket, IPaddress address, GameObject *object, 
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
         printf("Error sending object data\n");
+        free(xd);
+        SDLNet_FreePacket(packet);
+        ERROR_EXIT("Error sending packet\n");
         return;
     }
 
-    free(derived.data);
+    free(xd);
     SDLNet_FreePacket(packet);
 }
 

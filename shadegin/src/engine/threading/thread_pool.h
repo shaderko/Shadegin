@@ -6,29 +6,33 @@
 #include <stdio.h>
 #include <time.h>
 
-typedef struct {
+typedef struct
+{
     int id;
     void (*function)(void *);
     void *args;
     int completed;
 } Task;
 
-typedef struct {
-    Task* tasks;
+typedef struct
+{
+    Task *tasks;
     int tail;
     int size;
     int capacity;
 } TaskQueue;
 
-typedef struct {
+typedef struct
+{
     pthread_t id;
     int id_int;
     int waiting;
 } Thread;
 
-typedef struct {
+typedef struct
+{
     TaskQueue queue;
-    Thread* threads;
+    Thread *threads;
     int should_exit;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
