@@ -134,7 +134,7 @@ static void ProcessData(Room *room)
         memcpy(&data, message->data, sizeof(SerializedGameObject));
         int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
         memcpy(ad_data, message->data + sizeof(SerializedGameObject), data.collider.derived.len + data.renderer.derived.len);
-        AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len));
+        AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len, room->scene));
 
         free(ad_data);
         free(message->data);

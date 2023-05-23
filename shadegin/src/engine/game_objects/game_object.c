@@ -13,6 +13,7 @@
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 #include "../networking/server.h"
+#include "map/scene.h"
 
 static GameObject **GameObjectsArray = NULL;
 static size_t GameObjectsSize = 0;
@@ -194,18 +195,36 @@ static SerializedDerived Serialize(GameObject *object)
  * @param renderer
  * @return GameObject*
  */
-static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer)
+static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer, Scene *scene)
 {
-    for (int x = 0; x < GameObjectsSize; x++)
+    if (!scene)
     {
-        if (GameObjectsArray[x]->id == object->id)
+        for (int x = 0; x < GameObjectsSize; x++)
         {
-            printf("assigning position!\n");
-            GameObjectsArray[x]->position[0] = object->position[0];
-            GameObjectsArray[x]->position[1] = object->position[1];
-            GameObjectsArray[x]->position[2] = object->position[2];
-            printf("position updated %f, %f\n", object->position[0], object->position[1]);
-            return GameObjectsArray[x];
+            if (GameObjectsArray[x]->id == object->id)
+            {
+                printf("assigning position!\n");
+                GameObjectsArray[x]->position[0] = object->position[0];
+                GameObjectsArray[x]->position[1] = object->position[1];
+                GameObjectsArray[x]->position[2] = object->position[2];
+                printf("position updated %f, %f\n", object->position[0], object->position[1]);
+                return GameObjectsArray[x];
+            }
+        }
+    }
+    else
+    {
+        for (int x = 0; x < scene->objects_size; x++)
+        {
+            if (scene->objects[x]->id == object->id)
+            {
+                printf("assigning position!\n");
+                scene->objects[x]->position[0] = object->position[0];
+                scene->objects[x]->position[1] = object->position[1];
+                scene->objects[x]->position[2] = object->position[2];
+                printf("position updated %f, %f\n", object->position[0], object->position[1]);
+                return scene->objects[x];
+            }
         }
     }
     printf("object wans't found, creating\n");
