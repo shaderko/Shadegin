@@ -37,7 +37,7 @@ static Renderer *InitBox(vec3 position, vec3 size)
     Renderer *renderer = malloc(sizeof(Renderer));
     if (!renderer)
     {
-        ERROR_EXIT("error allocating memory for dlider.");
+        ERROR_EXIT("Error allocating memory for renderer.");
     }
 
     memcpy(renderer->position, position, sizeof(vec3));

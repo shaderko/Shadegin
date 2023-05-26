@@ -9,6 +9,7 @@
  *
  */
 
+#include "../../util.h"
 #include "box_renderer.h"
 #include "../../render/render.h"
 
@@ -20,10 +21,11 @@ static void Delete(Renderer *renderer)
 
 static vec3 *Size(Renderer *renderer)
 {
+    static vec3 defaultSize = {0, 0, 0};
     if (renderer == NULL || renderer->derived == NULL)
     {
-        return NULL;
-    }
+        return &defaultSize;
+    };
 
     BoxRenderer *derived_renderer = (BoxRenderer *)renderer->derived;
     return &derived_renderer->size;
@@ -41,7 +43,15 @@ static SerializedDerived Serialize(Renderer *renderer)
     SerializedDerived serialize_renderer;
     serialize_renderer.len = sizeof(vec3);
     serialize_renderer.data = malloc(serialize_renderer.len);
-    memcpy(serialize_renderer.data, renderer->Size(renderer), sizeof(vec3));
+    if (!serialize_renderer.data)
+    {
+        ERROR_EXIT("Couldn't allocate memory for serialized renderer!\n");
+    }
+    vec3 *pos = renderer->Size(renderer);
+    printf("%f, %f, %f\n", (*pos)[0], (*pos)[1], (*pos)[2]);
+    memcpy(serialize_renderer.data, renderer->Size(renderer), serialize_renderer.len);
+    vec3 *pos2 = serialize_renderer.data;
+    printf("%f, %f, %f\n", (*pos2)[0], (*pos2)[1], (*pos2)[2]);
 
     return serialize_renderer;
 }

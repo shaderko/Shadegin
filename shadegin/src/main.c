@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
-    AScene->ReadFile(scene, "file");
+    // Scene *scene = AScene->Init(&(vec3){0, 0, 0});
+    // AScene->ReadFile(scene, "file");
 
     render_init();
 

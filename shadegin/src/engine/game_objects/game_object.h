@@ -102,11 +102,15 @@ struct AGameObject
     void (*UpdateGameObjects)();
 
     /**
+     * Serialize a game object for network transfer
+     */
+    SerializedDerived (*Serialize)(GameObject *object);
+
+    /**
      * Deserialize network Game Object
      * Create new one if it doesn't exist
      * If it does apply all variables
      */
-    SerializedDerived (*Serialize)(GameObject *object);
     GameObject *(*Deserialize)(SerializedGameObject *object, int *collider, int *renderer, Scene *scene);
 };
 

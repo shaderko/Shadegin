@@ -55,6 +55,7 @@ struct Collider
 
     bool (*Collide)(GameObject *, GameObject *);
     void (*Delete)(Collider *);
+    vec3 *(*Size)(Collider *);
     SerializedDerived (*Seralize)(Collider *);
 };
 

@@ -13,7 +13,10 @@
 #define SERVER_H
 
 #include <SDL2/SDL_net.h>
-#include "room.h"
+#include "../game_objects/game_object.h"
+
+// definition for loop include
+typedef struct Room Room;
 
 typedef enum MessageType MessageType;
 enum MessageType

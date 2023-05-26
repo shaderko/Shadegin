@@ -9,6 +9,7 @@
  *
  */
 
+#include "../../util.h"
 #include <stdlib.h>
 #include "box_collider.h"
 #include "../game_object.h"
@@ -56,12 +57,28 @@ static void Delete(Collider *collider)
     free(collider);
 }
 
+static vec3 *Size(Collider *collider)
+{
+    static vec3 defaultSize = {0, 0, 0};
+    if (collider == NULL || collider->derived == NULL)
+    {
+        return &defaultSize;
+    };
+
+    BoxCollider *derived_collider = (BoxCollider *)collider->derived;
+    return &derived_collider->size;
+}
+
 static SerializedDerived Serialize(Collider *collider)
 {
     SerializedDerived serialize_collider;
     serialize_collider.len = sizeof(vec3);
     serialize_collider.data = malloc(serialize_collider.len);
-    memcpy(serialize_collider.data, collider->position, sizeof(vec3));
+    if (!serialize_collider.data)
+    {
+        ERROR_EXIT("Couldn't allocate memory for serialized collider!\n");
+    }
+    memcpy(serialize_collider.data, collider->Size(collider), serialize_collider.len);
 
     return serialize_collider;
 }
@@ -76,7 +93,6 @@ static Collider *Init(Collider *collider, vec3 size)
         return NULL; // TODO: error exit
     }
     collider->derived = box_collider;
-    collider->Seralize = Serialize;
     collider->type = BOX_COLLIDER;
     box_collider->parent = collider;
 
@@ -84,6 +100,7 @@ static Collider *Init(Collider *collider, vec3 size)
 
     collider->Collide = Collide;
     collider->Delete = Delete;
+    collider->Size = Size;
     collider->Seralize = Serialize;
 
     return collider;

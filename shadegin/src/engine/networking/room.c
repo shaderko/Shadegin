@@ -15,7 +15,6 @@
 #include "../util.h"
 #include "room.h"
 #include "server.h"
-#include "../game_objects/map/scene.h"
 #include "../game_objects/game_object.h"
 
 static Room *Init(Server *server)
@@ -74,7 +73,14 @@ static void RoomGame(Room *room)
     printf("Loading map for room %lld\n", room->room_id);
 
     room->scene = AScene->Init(&((vec3){0, 0, 0}));
-    AScene->ReadFile(room->scene, "file");
+    // AScene->ReadFile(room->scene, "file");
+    GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
+    GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
+    GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
+    AScene->Add(room->scene, object);
+    AScene->Add(room->scene, object1);
+    AScene->Add(room->scene, object2);
+    AScene->WriteToFile(room->scene, "file");
 
     printf("Map loaded, starting main loop\n");
 
@@ -174,7 +180,7 @@ static void SendData(Room *room)
         }
     }
 
-    printf("Sent %d of objects to %d clients\n", room->scene->objects_size, room->clients_size);
+    printf("Sent %d objects to %d clients\n", room->scene->objects_size, room->clients_size);
 }
 
 /**

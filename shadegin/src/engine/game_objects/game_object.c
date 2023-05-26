@@ -175,14 +175,20 @@ static SerializedDerived Serialize(GameObject *object)
         renderer};
 
     SerializedDerived result;
-    result.len = sizeof(SerializedGameObject) + collider.derived.len + renderer.derived.len;
+    result.len = sizeof(SerializedGameObject) + collider.derived.len;
     result.data = malloc(result.len);
+    if (!result.data)
+    {
+        free(collider.derived.data);
+        free(renderer.derived.data);
+        ERROR_EXIT("SerializedDerived memory couldn't be allocated!\n");
+    }
     memcpy(result.data, &serialize_obj, sizeof(SerializedGameObject));
-    memcpy(result.data + sizeof(SerializedGameObject), serialize_obj.collider.derived.data, serialize_obj.collider.derived.len);
-    memcpy(result.data + sizeof(SerializedGameObject) + serialize_obj.collider.derived.len, serialize_obj.renderer.derived.data, serialize_obj.renderer.derived.len);
+    memcpy(result.data + sizeof(SerializedGameObject), collider.derived.data, collider.derived.len);
+    // memcpy(result.data + sizeof(SerializedGameObject) + collider.derived.len, renderer.derived.data, renderer.derived.len);
 
-    free(serialize_obj.collider.derived.data);
-    free(serialize_obj.renderer.derived.data);
+    free(collider.derived.data);
+    free(renderer.derived.data);
 
     return result;
 }
