@@ -83,6 +83,15 @@ static GameObject *InitBox(bool is_static, float mass, vec3 position, vec3 size)
     return object;
 }
 
+static GameObject *GetGameObjectByIndex(int index)
+{
+    if (index >= GameObjectsSize || index < 0)
+    {
+        return NULL;
+    }
+    return GameObjectsArray[index];
+}
+
 /**
  * @brief Render the game object
  *
@@ -175,7 +184,7 @@ static SerializedDerived Serialize(GameObject *object)
         renderer};
 
     SerializedDerived result;
-    result.len = sizeof(SerializedGameObject) + collider.derived.len;
+    result.len = sizeof(SerializedGameObject) + collider.derived.len + renderer.derived.len;
     result.data = malloc(result.len);
     if (!result.data)
     {
@@ -183,9 +192,9 @@ static SerializedDerived Serialize(GameObject *object)
         free(renderer.derived.data);
         ERROR_EXIT("SerializedDerived memory couldn't be allocated!\n");
     }
-    memcpy(result.data, &serialize_obj, sizeof(SerializedGameObject));
-    memcpy(result.data + sizeof(SerializedGameObject), collider.derived.data, collider.derived.len);
-    // memcpy(result.data + sizeof(SerializedGameObject) + collider.derived.len, renderer.derived.data, renderer.derived.len);
+    memcpy((char *)result.data, &serialize_obj, sizeof(SerializedGameObject));
+    memcpy((char *)result.data + sizeof(SerializedGameObject), (char *)collider.derived.data, collider.derived.len);
+    memcpy((char *)result.data + sizeof(SerializedGameObject) + collider.derived.len, (char *)renderer.derived.data, renderer.derived.len);
 
     free(collider.derived.data);
     free(renderer.derived.data);
@@ -209,12 +218,13 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
         {
             if (GameObjectsArray[x]->id == object->id)
             {
-                printf("assigning position!\n");
                 GameObjectsArray[x]->position[0] = object->position[0];
                 GameObjectsArray[x]->position[1] = object->position[1];
                 GameObjectsArray[x]->position[2] = object->position[2];
-                printf("position updated %f, %f\n", object->position[0], object->position[1]);
-                return GameObjectsArray[x];
+                GameObjectsArray[x]->velocity[0] = object->velocity[0];
+                GameObjectsArray[x]->velocity[1] = object->velocity[1];
+                GameObjectsArray[x]->velocity[2] = object->velocity[2];
+                return NULL;
             }
         }
     }
@@ -224,12 +234,13 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
         {
             if (scene->objects[x]->id == object->id)
             {
-                printf("assigning position!\n");
                 scene->objects[x]->position[0] = object->position[0];
                 scene->objects[x]->position[1] = object->position[1];
                 scene->objects[x]->position[2] = object->position[2];
-                printf("position updated %f, %f\n", object->position[0], object->position[1]);
-                return scene->objects[x];
+                scene->objects[x]->velocity[0] = object->velocity[0];
+                scene->objects[x]->velocity[1] = object->velocity[1];
+                scene->objects[x]->velocity[2] = object->velocity[2];
+                return NULL;
             }
         }
     }
@@ -271,6 +282,7 @@ struct AGameObject AGameObject[1] =
     {{Init,
       Create,
       InitBox,
+      GetGameObjectByIndex,
       Render,
       RenderGameObjects,
       Update,

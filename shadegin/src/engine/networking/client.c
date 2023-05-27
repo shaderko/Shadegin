@@ -23,6 +23,11 @@ static Client *Init()
     }
 
     Client *client = malloc(sizeof(Client));
+    if (!client)
+    {
+        ERROR_EXIT("Error allocating memory for client\n");
+    }
+
     if (SDLNet_ResolveHost(&client->ip, "127.0.0.1", 1234) == -1)
     {
         free(client);
@@ -51,6 +56,41 @@ static Client *Init()
 
     return client;
 }
+
+// static void ClientNetworkUpdate(Client *client)
+// {
+//     if (!client)
+//     {
+//         puts("Client is NULL");
+//         return;
+//     }
+
+//     while (1)
+//     {
+//         Uint32 startTime = SDL_GetTicks();
+
+//         // Receive updates
+//         // Should there be solo thread to receive data?
+//         AClient->ProcessData(room);
+
+//         // Send game data to server
+//         ARoom->SendData(room);
+
+//         Uint32 currentTime = SDL_GetTicks();
+//         Uint32 elapsedTime = currentTime - startTime;
+//         if (elapsedTime < 16)
+//         {
+//             SDL_Delay(16 - elapsedTime);
+//         }
+//         else
+//         {
+//             float fps = 1000.0f / elapsedTime;
+//             printf("Client is clogged, fps: %.2f\n", fps);
+//         }
+//     }
+
+//     SDL_DetachThread(room->thread);
+// }
 
 static int Connect(Client *client)
 {
@@ -212,7 +252,7 @@ static void SendObject(Client *client, GameObject *object)
     printf("sending game object %lld\n", object->id);
     if (client->room_id <= 0)
     {
-        printf("no room id\n");
+        puts("No room id");
         return;
     }
 

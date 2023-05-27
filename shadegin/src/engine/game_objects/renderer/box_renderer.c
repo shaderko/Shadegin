@@ -47,11 +47,7 @@ static SerializedDerived Serialize(Renderer *renderer)
     {
         ERROR_EXIT("Couldn't allocate memory for serialized renderer!\n");
     }
-    vec3 *pos = renderer->Size(renderer);
-    printf("%f, %f, %f\n", (*pos)[0], (*pos)[1], (*pos)[2]);
-    memcpy(serialize_renderer.data, renderer->Size(renderer), serialize_renderer.len);
-    vec3 *pos2 = serialize_renderer.data;
-    printf("%f, %f, %f\n", (*pos2)[0], (*pos2)[1], (*pos2)[2]);
+    memcpy((char *)serialize_renderer.data, renderer->Size(renderer), serialize_renderer.len);
 
     return serialize_renderer;
 }

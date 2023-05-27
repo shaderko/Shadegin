@@ -83,11 +83,9 @@ static void Response(IPaddress address, int client_id, MessageType type, int siz
 
     memcpy(packet->data, &message, sizeof(Message));
 
-    printf("Sending %zu bytes\n", sizeof(message));
-
     if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
     {
-        printf("Error sending packet\n");
+        printf("Error sending packet, Response\n");
         SDLNet_FreePacket(packet);
         return;
     }
@@ -180,7 +178,6 @@ static void ReceiveData(UDPpacket *packet)
     case CREATE_ROOM_REQUEST:
         room = ARoom->Init(server);
         ARoom->JoinClient(room, client);
-        printf("client address 2 %d\n", client->address.host);
         if (room == NULL)
         {
             AServer->Response(packet->address, client->id, ERROR_NOTIFICATION, 0, NULL);
@@ -246,36 +243,31 @@ static void ReceiveData(UDPpacket *packet)
 static void SendObject(UDPsocket socket, IPaddress address, GameObject *object, int client_id)
 {
     SerializedDerived derived = AGameObject->Serialize(object);
-    Message message = {client_id, DATA_RESPONSE, 0, NULL};
-    // free(derived.data);
-    // SerializedGameObject *xd = derived.data;
-    // printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
+    Message message = {client_id, DATA_RESPONSE, derived.len, NULL};
+    SerializedGameObject *xd = derived.data;
 
-    // UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
-    // if (!packet)
-    // {
-    //     ERROR_EXIT("Error allocating packet\n");
-    // }
+    UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
+    if (!packet)
+    {
+        ERROR_EXIT("Error allocating packet\n");
+    }
 
-    // packet->address.host = address.host;
-    // packet->address.port = address.port;
-    // memcpy(packet->data, &message, sizeof(Message));
-    // memcpy(packet->data + sizeof(Message), derived.data, derived.len);
-    // packet->len = sizeof(Message) + derived.len;
+    packet->address.host = address.host;
+    packet->address.port = address.port;
+    memcpy(packet->data, &message, sizeof(Message));
+    memcpy(packet->data + sizeof(Message), derived.data, derived.len);
+    packet->len = sizeof(Message) + derived.len;
 
-    printf("sending %zu bytes\n", sizeof(Message));
+    if (SDLNet_UDP_Send(socket, -1, packet) == 0)
+    {
+        puts("Error sending packet, SendObject");
+        free(derived.data);
+        SDLNet_FreePacket(packet);
+        return;
+    }
 
-    // if (SDLNet_UDP_Send(server->server, -1, packet) == 0)
-    // {
-    //     printf("Error sending object data\n");
-    //     free(xd);
-    //     SDLNet_FreePacket(packet);
-    //     ERROR_EXIT("Error sending packet\n");
-    //     return;
-    // }
-
-    // free(xd);
-    // SDLNet_FreePacket(packet);
+    free(derived.data);
+    SDLNet_FreePacket(packet);
 }
 
 static Server *GetServer()

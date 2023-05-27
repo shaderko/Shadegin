@@ -89,6 +89,8 @@ struct AGameObject
      */
     GameObject *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
 
+    GameObject *(*GetGameObjectByIndex)(int index);
+
     /**
      * Render game object in position of game object with the local position of renderer
      */

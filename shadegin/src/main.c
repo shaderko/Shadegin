@@ -84,13 +84,20 @@ int main(int argc, char *argv[])
                 if (event.key.keysym.sym == SDLK_SPACE) // spacebar pressed
                 {
                     // Your code logic for spacebar key press
-                    AClient->JoinRoom(client, 73280732010223);
+                    AClient->JoinRoom(client, 64128156698565);
                     // Add your desired actions here
                 }
                 else if (event.key.keysym.sym == SDLK_w)
                 {
-                    camera->position[1] += 10;
-                    render_update_projection(camera);
+                    // camera->position[1] += 10;
+                    // render_update_projection(camera);
+                    GameObject *object = AGameObject->GetGameObjectByIndex(0);
+                    if (object != NULL)
+                    {
+                        object->position[1] += 100;
+                        object->velocity[1] = 0;
+                        AClient->SendObject(client, object);
+                    }
                 }
                 else if (event.key.keysym.sym == SDLK_s)
                 {

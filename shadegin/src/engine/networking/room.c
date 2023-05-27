@@ -17,6 +17,12 @@
 #include "server.h"
 #include "../game_objects/game_object.h"
 
+/**
+ * @brief Creates a room with unique id and starts a thread for it
+ *
+ * @param server - server to create room in
+ * @return Room*
+ */
 static Room *Init(Server *server)
 {
     printf("Creating room\n");
@@ -35,8 +41,9 @@ static Room *Init(Server *server)
 
     // Create queue
     room->queue = malloc(sizeof(RoomQueue));
-    if (room->queue == NULL)
+    if (!room->queue)
     {
+        free(room);
         ERROR_EXIT("Couldn't allocate memory for room %lld queue!\n", room->room_id);
     }
     room->queue->mutex = SDL_CreateMutex();
@@ -45,8 +52,10 @@ static Room *Init(Server *server)
         ERROR_EXIT("Error failed creating queue mutex! %s\n", SDL_GetError());
     }
     room->queue->data = malloc(sizeof(Message *) * 256);
-    if (room->queue->data == NULL)
+    if (!room->queue->data)
     {
+        free(room->queue);
+        free(room);
         ERROR_EXIT("Couldn't allocate memory for room %lld queue data!\n", room->room_id);
     }
     room->queue->tail = 0;
@@ -56,6 +65,7 @@ static Room *Init(Server *server)
     server->rooms = realloc(server->rooms, (server->rooms_size + 1) * sizeof(Room *));
     if (server->rooms == NULL)
     {
+        ARoom->DeleteRoom(room);
         ERROR_EXIT("Couldn't allocate memory for server rooms, room %lld!\n", room->room_id);
     }
     server->rooms[server->rooms_size] = room;
@@ -73,14 +83,7 @@ static void RoomGame(Room *room)
     printf("Loading map for room %lld\n", room->room_id);
 
     room->scene = AScene->Init(&((vec3){0, 0, 0}));
-    // AScene->ReadFile(room->scene, "file");
-    GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
-    GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
-    GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
-    AScene->Add(room->scene, object);
-    AScene->Add(room->scene, object1);
-    AScene->Add(room->scene, object2);
-    AScene->WriteToFile(room->scene, "file");
+    AScene->ReadFile(room->scene, "file");
 
     printf("Map loaded, starting main loop\n");
 
@@ -152,6 +155,11 @@ static void ProcessData(Room *room)
     SDL_UnlockMutex(room->queue->mutex);
 }
 
+/**
+ * @brief Sends all the game objects to all the clients in the room
+ *
+ * @param room - room to send data from
+ */
 static void SendData(Room *room)
 {
     Server *server = AServer->GetServer();
@@ -179,19 +187,17 @@ static void SendData(Room *room)
             AServer->SendObject(server->server, client->address, object, client->id);
         }
     }
-
-    printf("Sent %d objects to %d clients\n", room->scene->objects_size, room->clients_size);
 }
 
 /**
- * @brief Deletes room from server's list of rooms and sets all clients room assigned to this room, room to NULL
- * then removes the room and its memory
+ * @brief Deletes room and all its data, clients rooms pointers are set to NULL, room is removed from server rooms array
  *
  * @param room - room to delete
  */
 static void DeleteRoom(Room *room)
 {
-    printf("deleting room\n");
+    printf("Deleting Room %lld\n", room->room_id);
+
     for (int i = 0; i < room->clients_size; i++)
     {
         room->clients[i]->room = NULL;
@@ -207,11 +213,16 @@ static void DeleteRoom(Room *room)
                 break;
             }
             room->server->rooms[i] = room->server->rooms[room->server->rooms_size];
-            printf("Room deleted room %lld\n", room->room_id);
+            printf("Room %lld deleted\n", room->room_id);
             break;
         }
     }
+
+    SDL_Thread *thread = room->thread;
+    room->is_active = false;
+    free(room->queue);
     free(room);
+    SDL_DetachThread(thread);
 }
 
 /**
@@ -235,10 +246,10 @@ static Room *GetRoom(Server *server, ull room_id)
 }
 
 /**
- * @brief Add the client to a room
+ * @brief Add the client to a room, if the client is already in a room, nothing happens
  *
- * @param room
- * @param client
+ * @param room - room to add the client to
+ * @param client - client to add
  */
 static void JoinClient(Room *room, ServerClient *client)
 {
@@ -260,14 +271,15 @@ static void JoinClient(Room *room, ServerClient *client)
     room->clients_size++;
 
     client->room = room;
+
     puts("Client joined room");
 }
 
 /**
  * @brief Removes the client from a room
  *
- * @param room
- * @param client
+ * @param room - room to remove the client from
+ * @param client - client to be removed from the room
  */
 static void RemoveClient(Room *room, ServerClient *client)
 {
@@ -279,11 +291,13 @@ static void RemoveClient(Room *room, ServerClient *client)
             {
                 room->clients[i] = NULL;
             }
-            room->clients[i] = room->clients[room->clients_size - 1];
             room->clients_size--;
+            room->clients[i] = room->clients[room->clients_size];
+
+            client->room = NULL;
         }
     }
-    free(client);
+
     puts("Client removed from room");
 }
 

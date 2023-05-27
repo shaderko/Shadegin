@@ -5,7 +5,7 @@ typedef struct SerializedDerived SerializedDerived;
 struct SerializedDerived
 {
     int len;
-    int *data;
+    void *data;
 };
 
 #endif

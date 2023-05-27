@@ -40,6 +40,10 @@ static Update(Scene *scene)
 
 static void Add(Scene *scene, GameObject *object)
 {
+    if (!object)
+    {
+        return;
+    }
     scene->objects = realloc(scene->objects, sizeof(GameObject *) * (scene->objects_size + 1));
     scene->objects[scene->objects_size] = object;
     scene->objects_size++;

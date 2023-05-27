@@ -78,7 +78,7 @@ static SerializedDerived Serialize(Collider *collider)
     {
         ERROR_EXIT("Couldn't allocate memory for serialized collider!\n");
     }
-    memcpy(serialize_collider.data, collider->Size(collider), serialize_collider.len);
+    memcpy((char *)serialize_collider.data, collider->Size(collider), serialize_collider.len);
 
     return serialize_collider;
 }
