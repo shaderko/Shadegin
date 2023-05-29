@@ -11,14 +11,14 @@
 
 #include <stdio.h>
 
-#include "scene.h"
 #include "../../util.h"
+#include "scene.h"
 #include "../game_object.h"
 
 static Scene *Init(vec3 *size)
 {
     Scene *scene = malloc(sizeof(Scene));
-    if (scene == NULL)
+    if (!scene)
     {
         ERROR_EXIT("Scene memory couldn't be allocated!\n");
     }
@@ -40,7 +40,7 @@ static Update(Scene *scene)
 
 static void Add(Scene *scene, GameObject *object)
 {
-    if (!object)
+    if (!scene || !object)
     {
         return;
     }
@@ -76,7 +76,7 @@ static void WriteToFile(Scene *scene, const char *file)
 static void ReadFile(Scene *scene, const char *file)
 {
     FILE *in = fopen(file, "rb");
-    if (in == NULL)
+    if (!in)
     {
         printf("Error opening file: %s\n", file);
         return;
@@ -86,7 +86,6 @@ static void ReadFile(Scene *scene, const char *file)
     fread(&size, sizeof(int), 1, in);
 
     // Read objects data
-    printf("reading objects\n");
     for (int i = 0; i < size; i++)
     {
         SerializedGameObject data;
@@ -102,8 +101,6 @@ static void ReadFile(Scene *scene, const char *file)
 
         free(ad_data);
     }
-
-    printf("finished reading\n");
     fclose(in);
 }
 

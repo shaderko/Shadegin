@@ -9,10 +9,58 @@
  *
  */
 
-#include "../../util.h"
 #include <stdlib.h>
+
+#include "../../util.h"
 #include "box_collider.h"
 #include "../game_object.h"
+
+static Collider *Init(Collider *collider, vec3 size)
+{
+    BoxCollider *box_collider = malloc(sizeof(BoxCollider));
+    if (!box_collider)
+    {
+        collider->Delete(collider);
+        ERROR_EXIT("Couldn't allocate memory for box collider!\n");
+    }
+
+    collider->derived = box_collider;
+    collider->type = BOX_COLLIDER;
+
+    box_collider->parent = collider;
+    memcpy(box_collider->size, size, sizeof(vec3));
+
+    collider->Collide = ABoxCollider->Collide;
+    collider->Delete = ABoxCollider->Delete;
+    collider->Size = ABoxCollider->Size;
+    collider->Seralize = ABoxCollider->Serialize;
+
+    return collider;
+}
+
+static void Delete(Collider *collider)
+{
+    BoxCollider *child = collider->derived;
+
+    free(child);
+    free(collider);
+}
+
+/**
+ * @param collider - Collider to get the size of
+ * @return vec3* - returns vec3 pointer to size of collider, or if the collider is NULL, returns a vec3 pointer to a vec3 of 0,0,0
+ */
+static vec3 *Size(Collider *collider)
+{
+    static vec3 defaultSize = {0, 0, 0};
+    if (collider == NULL || collider->derived == NULL)
+    {
+        return &defaultSize;
+    };
+
+    BoxCollider *derived_collider = (BoxCollider *)collider->derived;
+    return &derived_collider->size;
+}
 
 static bool Collide(GameObject *object1, GameObject *object2)
 {
@@ -49,26 +97,6 @@ static bool Collide(GameObject *object1, GameObject *object2)
     return overlap_x && overlap_y && overlap_z;
 }
 
-static void Delete(Collider *collider)
-{
-    BoxCollider *child = collider->derived;
-
-    free(child);
-    free(collider);
-}
-
-static vec3 *Size(Collider *collider)
-{
-    static vec3 defaultSize = {0, 0, 0};
-    if (collider == NULL || collider->derived == NULL)
-    {
-        return &defaultSize;
-    };
-
-    BoxCollider *derived_collider = (BoxCollider *)collider->derived;
-    return &derived_collider->size;
-}
-
 static SerializedDerived Serialize(Collider *collider)
 {
     SerializedDerived serialize_collider;
@@ -83,28 +111,11 @@ static SerializedDerived Serialize(Collider *collider)
     return serialize_collider;
 }
 
-static Collider *Init(Collider *collider, vec3 size)
-{
-    BoxCollider *box_collider;
-    box_collider = malloc(sizeof(BoxCollider));
-    if (box_collider == NULL)
-    {
-        collider->Delete(collider);
-        return NULL; // TODO: error exit
-    }
-    collider->derived = box_collider;
-    collider->type = BOX_COLLIDER;
-    box_collider->parent = collider;
-
-    memcpy(box_collider->size, size, sizeof(vec3));
-
-    collider->Collide = Collide;
-    collider->Delete = Delete;
-    collider->Size = Size;
-    collider->Seralize = Serialize;
-
-    return collider;
-}
-
 struct ABoxCollider ABoxCollider[1] =
-    {{Init}};
+    {{
+        Init,
+        Delete,
+        Size,
+        Collide,
+        Serialize,
+    }};

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+
 #include "../serialized.h"
 
 typedef struct GameObject GameObject;
@@ -62,11 +63,23 @@ struct Collider
 struct ACollider
 {
     /**
-     * TODO:
+     * Create a new collider
      */
     Collider *(*Init)();
+
+    /**
+     * Create a new box collider
+     */
     Collider *(*InitBox)(vec3 position, vec3 size);
 
+    /**
+     * This function is only used if the collider has no derived class
+     */
+    void (*Delete)(Collider *collider);
+
+    /**
+     * Serialize the collider
+     */
     SerializedCollider (*Serialize)(Collider *);
 };
 

@@ -257,31 +257,6 @@ static void SendObject(Client *client, GameObject *object)
     }
 
     AServer->SendObject(client->server, client->ip, object, client->id);
-
-    // SerializedDerived derived = AGameObject->Serialize(object);
-    // Message message = {client->id, DATA_RESPONSE, derived.len, NULL};
-    // SerializedGameObject *xd = derived.data;
-    // printf("sending : %f, %f, %f\n", xd->position[0], xd->position[1], xd->position[2]);
-
-    // UDPpacket *packet = SDLNet_AllocPacket(sizeof(Message) + derived.len);
-
-    // packet->address.host = client->ip.host;
-    // packet->address.port = client->ip.port;
-    // memcpy(packet->data, &message, sizeof(Message));
-    // memcpy(packet->data + sizeof(Message), derived.data, derived.len);
-    // packet->len = sizeof(Message) + derived.len;
-
-    // printf("sending %lu bytes\n", derived.len);
-
-    // if (SDLNet_UDP_Send(client->server, -1, packet) == 0)
-    // {
-    //     printf("Error sending packet\n");
-    //     return;
-    // }
-    // printf("Packet sent 2\n");
-
-    // free(derived.data);
-    // SDLNet_FreePacket(packet);
 }
 
 struct AClient AClient[1] =

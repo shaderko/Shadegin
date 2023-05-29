@@ -9,40 +9,36 @@
  *
  */
 
+#include "../../util.h"
 #include "collider.h"
 #include "box_collider.h"
-#include "../../util.h"
-
-static void Delete(Collider *collider)
-{
-    free(collider);
-}
 
 static Collider *Init()
 {
     Collider *collider = malloc(sizeof(Collider));
     if (!collider)
     {
-        ERROR_EXIT("error allocating memory for collider.");
+        ERROR_EXIT("Error allocating memory for collider.");
     }
 
-    collider->Delete = Delete;
+    collider->Delete = ACollider->Delete;
 
     return collider;
 }
 
 static Collider *InitBox(vec3 position, vec3 size)
 {
-    Collider *collider = malloc(sizeof(Collider));
-    if (!collider)
-    {
-        ERROR_EXIT("error allocating memory for collider.");
-    }
+    Collider *collider = ACollider->Init();
 
     memcpy(collider->position, position, sizeof(vec3));
     ABoxCollider->Init(collider, size);
 
     return collider;
+}
+
+static void Delete(Collider *collider)
+{
+    free(collider);
 }
 
 static SerializedCollider Serialize(Collider *collider)
@@ -56,6 +52,9 @@ static SerializedCollider Serialize(Collider *collider)
 }
 
 struct ACollider ACollider[1] =
-    {{Init,
-      InitBox,
-      Serialize}};
+    {{
+        Init,
+        InitBox,
+        Delete,
+        Serialize,
+    }};

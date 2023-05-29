@@ -68,24 +68,22 @@ int main(int argc, char *argv[])
                 mouse_down = !mouse_down;
             case SDL_MOUSEWHEEL:
                 printf("mouse wheel\n");
-                if (event.wheel.y > 0) // scroll up
+                if (event.wheel.y > 0)
                 {
                     printf("mouse wheel up\n");
                     camera->distance -= 10;
                     render_update_projection(camera);
                 }
-                else if (event.wheel.y < 0) // scroll down
+                else if (event.wheel.y < 0)
                 {
                     printf("mouse wheel down\n");
                     camera->distance += 10;
                     render_update_projection(camera);
                 }
             case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_SPACE) // spacebar pressed
+                if (event.key.keysym.sym == SDLK_SPACE)
                 {
-                    // Your code logic for spacebar key press
                     AClient->JoinRoom(client, 64128156698565);
-                    // Add your desired actions here
                 }
                 else if (event.key.keysym.sym == SDLK_w)
                 {
@@ -124,14 +122,6 @@ int main(int argc, char *argv[])
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
 
-        // if (mouse_down)
-        // {
-        //     object->position[0] = mouseX;
-        //     object->position[1] = mouseY;
-
-        //     AClient->SendObject(client, object);
-        // }
-
         // camera_follow_target();
 
         camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
@@ -148,20 +138,12 @@ int main(int argc, char *argv[])
 
         render_end();
 
-        // FPS and Keep alive functions
         Uint32 currentTime = SDL_GetTicks();
         Uint32 elapsedTime = currentTime - startTime;
-
-        // Calculate FPS and print to console
-        // float fps = 1000.0f / elapsedTime;
-        // printf("FPS: %.2f\n", fps);
-
         // Regulate frame rate so the game doesn't consume computah
         if (elapsedTime < 16)
         {
             SDL_Delay(16 - elapsedTime);
-            // float fps = 1000.0f / (16 - elapsedTime);
-            // printf("FPS: %.2f\n", fps);
         }
         else
         {

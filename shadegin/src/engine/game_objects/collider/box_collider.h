@@ -12,9 +12,10 @@
 #ifndef BOX_COLLIDER_H
 #define BOX_COLLIDER_H
 
-#include "collider.h"
 #include <stdbool.h>
 #include <linmath.h>
+
+#include "collider.h"
 
 typedef struct BoxCollider BoxCollider;
 struct BoxCollider
@@ -33,11 +34,29 @@ struct BoxCollider
 struct ABoxCollider
 {
     /**
-     * Create game object
-     *
-     * Can have different collider and renderer types
+     * Create box collider
      */
     Collider *(*Init)(Collider *collider, vec3 size);
+
+    /**
+     * Delete box collider
+     */
+    void (*Delete)(Collider *collider);
+
+    /**
+     * Get the Size of a box collider
+     */
+    vec3 *(*Size)(Collider *collider);
+
+    /**
+     * Check if two box colliders are colliding
+     */
+    bool (*Collide)(GameObject *object1, GameObject *object2);
+
+    /**
+     * Serialize box collider
+     */
+    SerializedDerived (*Serialize)(Collider *collider);
 };
 
 extern struct ABoxCollider ABoxCollider[1];

@@ -15,24 +15,29 @@
 #include "../networking/server.h"
 #include "map/scene.h"
 
+/**
+ * All game object array (all that exist, so that means even in multiple rooms)
+ */
 static GameObject **GameObjectsArray = NULL;
 static size_t GameObjectsSize = 0;
 
 static GameObject *Init()
 {
     GameObject *object = malloc(sizeof(GameObject));
-    if (object == NULL)
+    if (!object)
     {
         ERROR_EXIT("GameObject memory couldn't be allocated!\n");
     }
+
     object->id = generate_random_id();
     printf("Initialized object with id %lld\n", object->id);
 
     GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
-    if (GameObjectsArray == NULL)
+    if (!GameObjectsArray)
     {
         ERROR_EXIT("GameObjectsArray memory couldn't be allocated!\n");
     }
+
     GameObjectsArray[GameObjectsSize] = object;
     GameObjectsSize++;
 
@@ -58,31 +63,32 @@ static GameObject *Create(bool is_static, float mass, vec3 position)
 
     object->collider = NULL;
     object->renderer = NULL;
+
     return object;
 }
 
 /**
- * Initialize a box game object with box collider and renderer
+ * @brief Initialize a box game object with box collider and renderer
  *
- * @param is_static dynamic physics or static
+ * @param is_static dynamic or static physics
  * @return GameObject*
  */
 static GameObject *InitBox(bool is_static, float mass, vec3 position, vec3 size)
 {
-    GameObject *object = Init();
-
-    /**
-     * Initialize all the main variables like is_static...
-     */
-    memcpy(object->position, position, sizeof(vec3));
-    object->mass = mass;
-    object->is_static = is_static;
+    GameObject *object = AGameObject->Create(is_static, mass, position);
 
     object->collider = ACollider->InitBox((vec3){0, 0, 0}, size);
     object->renderer = ARenderer->InitBox((vec3){0, 0, 0}, size);
+
     return object;
 }
 
+/**
+ * @brief Get the game object by index of object in array
+ *
+ * @param index index of the game object in the array
+ * @return GameObject* or NULL if the game object doesn't exist
+ */
 static GameObject *GetGameObjectByIndex(int index)
 {
     if (index >= GameObjectsSize || index < 0)
@@ -95,7 +101,7 @@ static GameObject *GetGameObjectByIndex(int index)
 /**
  * @brief Render the game object
  *
- * @param object
+ * @param object object to be rendered
  */
 static void Render(GameObject *object)
 {
@@ -104,7 +110,6 @@ static void Render(GameObject *object)
 
 /**
  * @brief Render all game objects
- *
  */
 static void RenderGameObjects()
 {
@@ -117,7 +122,7 @@ static void RenderGameObjects()
 /**
  * @brief Apply gravity to object
  *
- * @param object
+ * @param object to apply gravity to
  */
 static void ApplyGravity(GameObject *object)
 {
@@ -153,7 +158,6 @@ static void Update(GameObject *object)
 
 /**
  * @brief Update all game objects
- *
  */
 static void UpdateGameObjects()
 {
@@ -244,9 +248,6 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
             }
         }
     }
-    printf("object wans't found, creating\n");
-
-    printf("%lld\n", object->id);
 
     if (collider == NULL || renderer == NULL)
     {
@@ -274,18 +275,19 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
         break;
     }
 
-    printf("object created! %lld\n", new_obj->id);
     return new_obj;
 }
 
 struct AGameObject AGameObject[1] =
-    {{Init,
-      Create,
-      InitBox,
-      GetGameObjectByIndex,
-      Render,
-      RenderGameObjects,
-      Update,
-      UpdateGameObjects,
-      Serialize,
-      Deserialize}};
+    {{
+        Init,
+        Create,
+        InitBox,
+        GetGameObjectByIndex,
+        Render,
+        RenderGameObjects,
+        Update,
+        UpdateGameObjects,
+        Serialize,
+        Deserialize,
+    }};

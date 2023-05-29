@@ -16,13 +16,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "../util.h"
 
+#include "../util.h"
 #include "collider/collider.h"
 #include "renderer/renderer.h"
 
-typedef struct Scene Scene;
 // Defined for circular import
+typedef struct Scene Scene;
 
 typedef struct SerializedGameObject SerializedGameObject;
 struct SerializedGameObject

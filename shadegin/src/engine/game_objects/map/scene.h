@@ -24,16 +24,38 @@ struct Scene
      */
     vec3 size;
 
+    /**
+     * Array of objects in a scene
+     */
     GameObject **objects;
     int objects_size;
 };
 
 struct AScene
 {
+    /**
+     * Initializes a scene
+     */
     Scene *(*Init)(vec3 *);
+
+    /**
+     * Updates a scene
+     */
     void (*Update)(Scene *scene);
+
+    /**
+     * Adds an object to a scene
+     */
     void (*Add)(Scene *scene, GameObject *object);
+
+    /**
+     * Writes scene objects to a file
+     */
     void (*WriteToFile)(Scene *scene, const char *file);
+
+    /**
+     * Reads scene objects from a file
+     */
     void (*ReadFile)(Scene *scene, const char *file);
 };
 
