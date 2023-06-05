@@ -1,30 +1,47 @@
+/**
+ * @file camera.c
+ * @author your name (you@domain.com)
+ * @brief
+ * @version 0.1
+ * @date 2023-05-30
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
 #include "camera.h"
 #include "../global.h"
 #include "../util.h"
 
-Camera* camera = NULL;
+static Camera *camera = NULL;
 
-void camera_init(float distance, float smoothing, vec3 position, GameObject* target) {
-    camera = calloc(1, sizeof(Camera));
-    if (camera == NULL) {
+static Camera *Init(float distance, float smoothing, vec3 position, GameObject *target)
+{
+    camera = malloc(sizeof(Camera));
+    if (!camera)
+    {
         ERROR_EXIT("error allocating memory for camera.\n");
     }
+
     camera->target = target;
     camera->distance = distance;
     camera->smoothing = smoothing;
     memcpy(camera->position, position, sizeof(vec3));
-    camera_update_view();
-}
+    mat4x4_identity(camera->view);
+    ACamera->UpdateView(camera);
 
-Camera* get_camera() {
-    if (camera == NULL) {
-        ERROR_EXIT("error getting camera.\n");
-    }
     return camera;
 }
 
-void camera_update_view() {
-    vec3 eye = {camera->position[0], 50 + camera->position[1], 100};
+static Camera *Get()
+{
+    return camera;
+}
+
+static void UpdateView()
+{
+    int z_distance = 10000;
+    vec3 eye = {camera->position[0], z_distance + camera->position[1], z_distance * 2};
     vec3 center = {camera->position[0], camera->position[1], 0};
     vec3 up = {0.0f, 1.0f, 0};
     mat4x4_look_at(camera->view, eye, center, up);
@@ -32,18 +49,31 @@ void camera_update_view() {
     render_shaders(camera);
 }
 
-void camera_follow_target() {
-    if (camera->target) {
-        camera_update_position(camera->target->position);
+static void FollowTarget()
+{
+    if (!camera->target)
+    {
+        return;
     }
+
+    ACamera->UpdatePosition(camera, camera->target->position);
 }
 
-void camera_update_position(vec3 position) {
+static void UpdatePosition(vec3 position)
+{
     camera->velocity[0] = (position[0] - camera->position[0]) / camera->smoothing;
     camera->velocity[1] = (position[1] - camera->position[1]) / camera->smoothing;
 
     camera->position[0] += camera->velocity[0];
     camera->position[1] += camera->velocity[1];
 
-    camera_update_view();
+    ACamera->UpdateView(camera);
 }
+
+struct ACamera ACamera[1] = {{
+    Init,
+    Get,
+    UpdateView,
+    FollowTarget,
+    UpdatePosition,
+}};

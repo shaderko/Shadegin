@@ -59,14 +59,14 @@ void render_init_shaders(Render_State_Internal *state)
     state->shader_default = render_shader_create_name("./shaders/default");
     state->shader_screen = render_shader_create_name("./shaders/screen");
 
-    camera_init(400, 10, (vec3){0, 0, 0}, NULL);
-    Camera *camera = get_camera();
+    Camera *camera = ACamera->Init(400, 10, (vec3){0, 0, 0}, NULL);
 
     float aspect_ratio = (float)global.render.width / (float)global.render.height;
     mat4x4_ortho(state->projection, -camera->distance * aspect_ratio, camera->distance * aspect_ratio, -camera->distance, camera->distance, 1.0f, 100000.0f);
 
     glUseProgram(state->shader_default);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_CLAMP);
     glUniformMatrix4fv(glGetUniformLocation(state->shader_default, "projection"), 1, GL_FALSE, &state->projection[0][0]);
 }
 

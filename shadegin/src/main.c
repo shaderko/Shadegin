@@ -9,7 +9,7 @@
 #include "engine/threading/thread_pool.h"
 #include "engine/render/camera.h"
 
-// #include "../game_files/player.h"
+#include "../game_files/player.h"
 // #include "../game_files/walls/wall.h"
 #include "engine/game_objects/game_object.h"
 #include "engine/networking/server.h"
@@ -44,7 +44,10 @@ int main(int argc, char *argv[])
     bool running = true;
     bool mouse_down = false;
 
-    Camera *camera = get_camera();
+    Camera *camera = ACamera->Get();
+    Player *player = APlayer->Init((vec2){0, 0}, 10);
+    float movement_x = 0;
+    float movement_y = 0;
 
     while (running)
     {
@@ -83,34 +86,44 @@ int main(int argc, char *argv[])
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_SPACE)
                 {
-                    AClient->JoinRoom(client, 64128156698565);
+                    AClient->JoinRoom(client, 136773233543873);
                 }
                 else if (event.key.keysym.sym == SDLK_w)
                 {
-                    // camera->position[1] += 10;
-                    // render_update_projection(camera);
-                    GameObject *object = AGameObject->GetGameObjectByIndex(0);
-                    if (object != NULL)
-                    {
-                        object->position[1] += 100;
-                        object->velocity[1] = 0;
-                        AClient->SendObject(client, object);
-                    }
+                    GameObject *object = AGameObject->GetGameObjectByIndex(1);
+                    object->position[1] += 100;
+                    AClient->SendObject(client, object);
+                    movement_y = 10;
                 }
                 else if (event.key.keysym.sym == SDLK_s)
                 {
-                    camera->position[1] -= 10;
-                    render_update_projection(camera);
+                    movement_y = -10;
                 }
                 else if (event.key.keysym.sym == SDLK_a)
                 {
-                    camera->position[0] -= 10;
-                    render_update_projection(camera);
+                    movement_x = -10;
                 }
                 else if (event.key.keysym.sym == SDLK_d)
                 {
-                    camera->position[0] += 10;
-                    render_update_projection(camera);
+                    movement_x = 10;
+                }
+                break;
+            case SDL_KEYUP:
+                if (event.key.keysym.sym == SDLK_w)
+                {
+                    movement_y = 0;
+                }
+                else if (event.key.keysym.sym == SDLK_s)
+                {
+                    movement_y = 0;
+                }
+                else if (event.key.keysym.sym == SDLK_a)
+                {
+                    movement_x = 0;
+                }
+                else if (event.key.keysym.sym == SDLK_d)
+                {
+                    movement_x = 0;
                 }
                 break;
             default:
@@ -122,10 +135,13 @@ int main(int argc, char *argv[])
         SDL_GetMouseState(&mouseX, &mouseY);
         mouseY = global.render.height - mouseY;
 
-        // camera_follow_target();
+        if (movement_x != 0 || movement_y != 0)
+        {
+            APlayer->Move(player, (vec2){movement_x, movement_y});
+        }
 
-        camera_update_position((vec3){mouseX - global.render.width / 2, mouseY - global.render.height / 2, 0});
-        // AGameObject->UpdateGameObjects();
+        ACamera->UpdatePosition((vec3){mouseX - global.render.width / 2 + player->object->position[0], mouseY - global.render.height / 2 + player->object->position[1], 0});
+        AGameObject->UpdateGameObjects();
 
         render_begin();
         // render_begin_pixelated();

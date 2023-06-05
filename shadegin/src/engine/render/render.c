@@ -2,8 +2,6 @@
 #include "render.h"
 #include "render_internal.h"
 
-// #include "../game_objects/game_object.h"
-
 static Render_State_Internal state = {0};
 
 void render_init(void)
