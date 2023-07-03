@@ -11,3 +11,5 @@
 .\shadegin\mygame
 .\shadegin\mygame.dSYM
 .\include\SDL2
+
+/shadegin/build

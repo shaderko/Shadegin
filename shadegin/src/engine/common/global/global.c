@@ -1,5 +1,5 @@
 /**
- * @file ship.c
+ * @file global.c
  * @author https://github.com/shaderko
  * @brief
  * @version 0.1
@@ -9,8 +9,6 @@
  *
  */
 
-#include "ship.h"
+#include "global.h"
 
-struct AShip AShip[1] = {{
-
-}};
+Global global = {0};

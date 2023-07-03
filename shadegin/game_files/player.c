@@ -10,7 +10,7 @@
  */
 
 #include "player.h"
-#include "../src/engine/render/render.h"
+#include "../src/engine/render/render/render.h"
 
 static Player **players = NULL;
 static size_t players_size = 0;
@@ -31,7 +31,7 @@ Player *Init(vec2 position, float speed)
 
     // Assign values
     player->speed = 0;
-    player->object = AGameObject->InitBox(true, 1, (vec3){position[0], position[1], 1}, (vec3){20, 20, 20});
+    player->object = AGameObject->InitBox(true, 1, (vec3){position[0], position[1], 1}, (vec3){5, 5, 5});
 
     players[players_size] = player;
     players_size++;
