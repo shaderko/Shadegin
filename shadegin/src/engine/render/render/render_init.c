@@ -253,6 +253,27 @@ void render_init_square(u32 *vao, u32 *vbo, u32 *ebo)
     glEnableVertexAttribArray(1);
 }
 
+void render_init_mesh(u32 *vao, u32 *vbo, u32 *ebo)
+{
+    glGenVertexArrays(1, vao);
+    glGenBuffers(1, vbo);
+    glGenBuffers(1, ebo);
+
+    glBindVertexArray(*vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *ebo);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // UV attribute
+    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void *)(3 * sizeof(f32)));
+    // glEnableVertexAttribArray(1);
+}
+
 void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo)
 {
     glGenVertexArrays(1, vao);

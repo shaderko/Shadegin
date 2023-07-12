@@ -15,6 +15,9 @@ typedef struct render_state_internal
     u32 vao_square;
     u32 vbo_square;
     u32 ebo_square;
+    u32 vao_mesh;
+    u32 vbo_mesh;
+    u32 ebo_mesh;
     u32 vao_poly;
     u32 vbo_poly;
     u32 ebo_poly;
@@ -35,6 +38,7 @@ void render_init_pixelated(u32 *color, u32 *depth, u32 *fbo);
 void render_init_screen(u32 *vao, u32 *vbo);
 void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_square(u32 *vao, u32 *vbo, u32 *ebo);
+void render_init_mesh(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_poly(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_line(u32 *vao, u32 *vbo, u32 *ebo);
 void render_init_color_texture(u32 *texture);

@@ -14,7 +14,7 @@
 
 #include <linmath.h>
 
-#include "../../src/engine/game_objects/game_object.h"
+#include "../../src/engine/objects/game_objects/game_object.h"
 
 typedef struct Ship Ship;
 struct Ship
@@ -28,6 +28,7 @@ struct Ship
     int experience;
 
     GameObject *object;
+    // Canon[] canons
 
     vec2 position;
     vec2 velocity;
@@ -52,10 +53,9 @@ struct Ship
     float cargo;
 };
 
-typedef struct AShip AShip;
 struct AShip
 {
-    Ship *(*Init)(int id, int owner_id, int type, int faction, int level, int rank, int experience, vec2 position, vec2 velocity, vec2 acceleration, float max_acceleration, float rotation, float mass, float max_force, float max_turn_rate, float max_health, float health, float max_shield, float shield, float max_shield_regen, float shield_regen, float max_energy, float energy, float max_energy_regen, float energy_regen, float cargo_capacity, float cargo);
+    Ship *(*Init)();
     void (*Update)(Ship *ship);
     void (*Destroy)(Ship *ship);
 };

@@ -30,9 +30,10 @@ static Client *Init()
 
     // Initialize error for libuv
     int error;
+
     // Server destination address
     struct sockaddr_in6 dest;
-    error = uv_ip6_addr("::1", 1234, &dest);
+    error = uv_ip6_addr("fe80::5667:51ff:fe06:64bb", 8390, &dest);
     if (error < 0)
     {
         free(client);
@@ -50,6 +51,7 @@ static Client *Init()
     }
 
     // Initialize UDP socket
+    // TODO: when creating connection, if the address bound to by udp on the server is in use, try another one
     error = uv_udp_init(&client->loop, &client->UDPrecv_socket);
     if (error < 0)
     {
@@ -108,7 +110,7 @@ static Client *Init()
 static void connect_client(uv_connect_t *req, int status)
 {
     if (status < 0)
-        printf("Couldn't connect to server\n");
+        printf("Couldn't connect to server %s\n", uv_strerror(status));
 
     int error;
     // Start listening for messages on TCP socket
@@ -256,13 +258,13 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
 
 static void JoinRoom(Client *client, ull room_id)
 {
-    // REMOVE AFTER TODO:
-    if (client->room_id != 0)
+    if (!client)
     {
         return;
     }
 
-    if (!client)
+    // REMOVE AFTER TODO:
+    if (client->room_id != 0)
     {
         return;
     }
@@ -284,6 +286,11 @@ static void JoinRoom(Client *client, ull room_id)
 
 static void SendObject(Client *client, GameObject *object)
 {
+    if (!client)
+    {
+        return;
+    }
+
     printf("sending game object %lld\n", object->id);
     if (client->room_id <= 0)
     {

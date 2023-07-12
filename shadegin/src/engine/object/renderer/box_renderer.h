@@ -13,6 +13,7 @@
 #define BOX_RENDERER_H
 
 #include "renderer.h"
+
 #include <linmath.h>
 
 typedef struct BoxRenderer BoxRenderer;

@@ -20,6 +20,8 @@
 #include "engine/common/config/config.h"
 #include "engine/input/input.h"
 
+#include "engine/object/model/model.h"
+
 #define SPEED_PLAYER 1
 
 #include <stdlib.h>
@@ -77,14 +79,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    client = AClient->Init();
-    if (client == NULL)
-    {
-        return 0;
-    }
+    // client = AClient->Init();
+    // if (client == NULL)
+    // {
+    //     return 0;
+    // }
 
     // Scene *scene = AScene->Init(&(vec3){0, 0, 0});
     // AScene->ReadFile(scene, "file");
+
+    // Model *model = AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/cube.obj");
+    // Renderer *renderer = ARenderer->InitMesh(model);
 
     config_init();
     render_init();
@@ -140,6 +145,8 @@ int main(int argc, char *argv[])
 
         render_begin();
         render_begin_pixelated();
+
+        // renderer->Render(renderer, (vec3){0, 0, 0});
 
         AGameObject->RenderGameObjects();
 

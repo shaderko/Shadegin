@@ -11,6 +11,24 @@
 
 #include "ship.h"
 
-struct AShip AShip[1] = {{
+static Ship Init()
+{
+    Ship ship = {0};
 
+    return ship;
+}
+
+static void Update(Ship *ship)
+{
+}
+
+static void Destroy(Ship *ship)
+{
+    free(ship);
+}
+
+struct AShip AShip[1] = {{
+    Init,
+    Update,
+    Destroy,
 }};

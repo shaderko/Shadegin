@@ -11,8 +11,9 @@
 
 #include "renderer.h"
 #include "box_renderer.h"
+#include "mesh_renderer.h"
 #include "../../util/util.h"
-#include "../../network/server/server.h"
+#include "../model/model.h"
 
 static void Delete(Renderer *renderer)
 {
@@ -46,6 +47,19 @@ static Renderer *InitBox(vec3 position, vec3 size)
     return renderer;
 }
 
+static Renderer *InitMesh(Model *model)
+{
+    Renderer *renderer = malloc(sizeof(Renderer));
+    if (!renderer)
+    {
+        ERROR_EXIT("Error allocating memory for renderer.");
+    }
+
+    AMeshRenderer->Init(renderer, (vec3){0, 0, 0}, (vec3){0, 0, 0}, (vec3){1, 1, 1}, model);
+
+    return renderer;
+}
+
 static SerializedRenderer Serialize(Renderer *renderer)
 {
     SerializedRenderer serialized = {
@@ -59,4 +73,5 @@ static SerializedRenderer Serialize(Renderer *renderer)
 struct ARenderer ARenderer[1] =
     {{Init,
       InitBox,
+      InitMesh,
       Serialize}};

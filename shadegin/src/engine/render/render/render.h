@@ -22,6 +22,7 @@
 
 #include "../../common/types/types.h"
 #include "../camera/camera.h"
+#include "../../object/model/model.h"
 
 typedef struct render_state
 {
@@ -42,6 +43,7 @@ void render_update_projection(Camera *camera);
 void render_light(vec3 position);
 void render_quad(vec3 pos, vec3 size, vec4 color, bool fill);
 void render_square(vec3 pos, vec3 size, vec4 color, bool fill);
+void render_mesh(Model *model);
 void render_poly(vec2 *vertices, size_t num_vertices, vec4 color);
 void render_line(vec2 src_pos, vec2 dst_pos, vec4 color);
 

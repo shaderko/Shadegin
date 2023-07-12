@@ -1,16 +1,16 @@
 /**
- * @file box_renderer.c
+ * @file mesh_renderer.c
  * @author https://github.com/shaderko
- * @brief Used for rendering a 3D box
+ * @brief
  * @version 0.1
- * @date 2023-04-19
+ * @date 2023-07-11
  *
  * @copyright Copyright (c) 2023
  *
  */
 
-#include "../../util/util.h"
-#include "box_renderer.h"
+#include "mesh_renderer.h"
+
 #include "../../render/render/render.h"
 
 static void Delete(Renderer *renderer)
@@ -27,21 +27,36 @@ static vec3 *Size(Renderer *renderer)
         return &defaultSize;
     };
 
-    BoxRenderer *derived_renderer = (BoxRenderer *)renderer->derived;
-    return &derived_renderer->size;
+    MeshRenderer *derived_renderer = (MeshRenderer *)renderer->derived;
+    return &derived_renderer->scale;
 }
 
 static void Render(Renderer *renderer, vec3 position)
 {
-    vec3 world_position = {0, 0, 0};
-    vec3_add(world_position, position, renderer->position);
-    render_square(world_position, *renderer->Size(renderer), (vec4){0, 0, 0, 0}, true); // TODO: color
+    MeshRenderer *mesh_renderer = (MeshRenderer *)renderer->derived;
+
+    if (!mesh_renderer->model)
+    {
+        printf("Mesh renderer model is NULL\n");
+        return;
+    }
+
+    if (!mesh_renderer->model->is_valid)
+    {
+        printf("Mesh renderer model is not valid\n");
+        return;
+    }
+
+    puts("rendering mesh");
+
+    render_mesh(mesh_renderer->model);
 }
 
+// TODO:
 static SerializedDerived Serialize(Renderer *renderer)
 {
     SerializedDerived serialize_renderer;
-    serialize_renderer.len = sizeof(vec3);
+    serialize_renderer.len = sizeof(renderer->derived->model);
     serialize_renderer.data = malloc(serialize_renderer.len);
     if (!serialize_renderer.data)
     {
@@ -52,20 +67,21 @@ static SerializedDerived Serialize(Renderer *renderer)
     return serialize_renderer;
 }
 
-static Renderer *Init(Renderer *renderer, vec3 size)
+static Renderer *Init(Renderer *renderer, vec3 position, vec3 rotation, vec3 scale, Model *model)
 {
-    BoxRenderer *box_renderer;
-    box_renderer = malloc(sizeof(BoxRenderer));
-    if (box_renderer == NULL)
+    MeshRenderer *mesh_renderer;
+    mesh_renderer = malloc(sizeof(MeshRenderer));
+    if (mesh_renderer == NULL)
     {
         renderer->Delete(renderer);
         return NULL; // TODO: error exit
     }
-    renderer->derived = box_renderer;
-    renderer->type = BOX_RENDERER;
+    renderer->derived = mesh_renderer;
+    renderer->type = MESH_RENDERER;
 
-    box_renderer->parent = renderer;
-    memcpy(box_renderer->size, size, sizeof(vec3));
+    mesh_renderer->parent = renderer;
+    mesh_renderer->model = model;
+    memcpy(mesh_renderer->scale, scale, sizeof(vec3));
 
     renderer->Render = Render;
     renderer->Size = Size;
@@ -75,7 +91,6 @@ static Renderer *Init(Renderer *renderer, vec3 size)
     return renderer;
 }
 
-struct ABoxRenderer ABoxRenderer[1] =
-    {{
-        Init,
-    }};
+struct AMeshRenderer AMeshRenderer[1] = {{
+    Init,
+}};

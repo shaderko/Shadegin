@@ -12,12 +12,14 @@
 #include <stdbool.h>
 #include <linmath.h>
 #include "../serialized/serialized.h"
+#include "../model/model.h"
 
 typedef enum RendererType RendererType;
 enum RendererType
 {
     NONE_RENDERER,
     BOX_RENDERER,
+    MESH_RENDERER,
 };
 
 typedef struct SerializedRenderer SerializedRenderer;
@@ -62,6 +64,7 @@ struct ARenderer
      */
     Renderer *(*Init)();
     Renderer *(*InitBox)(vec3 position, vec3 size);
+    Renderer *(*InitMesh)(Model *model);
 
     SerializedRenderer (*Serialize)(Renderer *);
 };
