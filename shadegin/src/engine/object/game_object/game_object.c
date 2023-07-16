@@ -8,11 +8,11 @@
  *
  */
 
-#include "../../util/util.h"
 #include "game_object.h"
+
+#include "../../util/util.h"
 #include "../collider/collider.h"
 #include "../renderer/renderer.h"
-#include "../../network/network/network.h"
 #include "../map/scene.h"
 
 /**
@@ -30,7 +30,7 @@ static GameObject *Init()
     }
 
     object->id = generate_random_id();
-    printf("Initialized object with id %lld\n", object->id);
+    printf("Initialized object with id %llu\n", object->id);
 
     GameObjectsArray = realloc(GameObjectsArray, (GameObjectsSize + 1) * sizeof(GameObject *));
     if (!GameObjectsArray)
@@ -78,7 +78,17 @@ static GameObject *InitBox(bool is_static, float mass, vec3 position, vec3 size)
     GameObject *object = AGameObject->Create(is_static, mass, position);
 
     object->collider = ACollider->InitBox((vec3){0, 0, 0}, size);
-    object->renderer = ARenderer->InitBox((vec3){0, 0, 0}, size);
+    object->renderer = ARenderer->InitBox((vec3){0, 0, 0}, (vec3){0, 0, 0}, size);
+
+    return object;
+}
+
+static GameObject *InitMesh(bool is_static, float mass, vec3 position, vec3 size, Model *model)
+{
+    GameObject *object = AGameObject->Create(is_static, mass, position);
+
+    object->collider = ACollider->InitBox((vec3){0, 0, 0}, size);
+    object->renderer = ARenderer->InitMesh(model, (vec4){1, 1, 1, 1}, (vec3){0, 0, 0}, (vec3){0, 0, 0}, size);
 
     return object;
 }
@@ -105,7 +115,7 @@ static GameObject *GetGameObjectByIndex(int index)
  */
 static void Render(GameObject *object)
 {
-    object->renderer->Render(object->renderer, object->position);
+    ARenderer->Render(object->renderer, object->position);
 }
 
 /**
@@ -196,8 +206,11 @@ static SerializedDerived Serialize(GameObject *object)
         free(renderer.derived.data);
         ERROR_EXIT("SerializedDerived memory couldn't be allocated!\n");
     }
+
     memcpy((char *)result.data, &serialize_obj, sizeof(SerializedGameObject));
     memcpy((char *)result.data + sizeof(SerializedGameObject), (char *)collider.derived.data, collider.derived.len);
+
+    // Renderer
     memcpy((char *)result.data + sizeof(SerializedGameObject) + collider.derived.len, (char *)renderer.derived.data, renderer.derived.len);
 
     free(collider.derived.data);
@@ -214,8 +227,9 @@ static SerializedDerived Serialize(GameObject *object)
  * @param renderer
  * @return GameObject*
  */
-static GameObject *Deserialize(SerializedGameObject *object, int *collider, int *renderer, Scene *scene)
+static GameObject *Deserialize(SerializedGameObject *object, Scene *scene)
 {
+    printf("Deserializing game object with id %llu\n", object->id);
     if (!scene)
     {
         for (int x = 0; x < GameObjectsSize; x++)
@@ -249,12 +263,6 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
         }
     }
 
-    if (collider == NULL || renderer == NULL)
-    {
-        printf("collider or renderer is null\n");
-        return NULL;
-    }
-
     GameObject *new_obj = AGameObject->Create(object->is_static, object->mass, object->position);
     new_obj->id = object->id;
     switch (object->collider.type)
@@ -266,14 +274,9 @@ static GameObject *Deserialize(SerializedGameObject *object, int *collider, int 
         break;
     }
 
-    switch (object->renderer.type)
-    {
-    case BOX_RENDERER:
-        new_obj->renderer = ARenderer->InitBox((float *)object->renderer.position, (float *)&(vec3){100, 100, 100});
-        break;
-    default:
-        break;
-    }
+    printf("object->renderer.derived.len: %d\n", object->renderer.derived.len);
+
+    new_obj->renderer = ARenderer->Deserialize(object->renderer);
 
     return new_obj;
 }
@@ -283,6 +286,7 @@ struct AGameObject AGameObject[1] =
         Init,
         Create,
         InitBox,
+        InitMesh,
         GetGameObjectByIndex,
         Render,
         RenderGameObjects,

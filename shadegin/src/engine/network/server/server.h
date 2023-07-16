@@ -47,6 +47,8 @@ struct Message
     int client_id;
     MessageType type;
 
+    int data_received;
+
     /**
      * data
      */
@@ -159,6 +161,8 @@ struct AServer
      * Send object to client
      */
     void (*SendObject)(GameObject *object, int client_id);
+
+    void (*SendObjectTCP)(GameObject *object, ServerClientHandle *client_stream);
 
     /**
      * Get the Server object

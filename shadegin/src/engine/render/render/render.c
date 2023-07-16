@@ -178,7 +178,7 @@ void render_square(vec3 pos, vec3 size, vec4 color, bool fill)
     glBindVertexArray(0);
 }
 
-void render_mesh(Model *model)
+void render_mesh(Model *model, vec3 position, vec3 scale)
 {
     glUseProgram(state.shader_default);
 
@@ -194,6 +194,9 @@ void render_mesh(Model *model)
         {0, 1, 0, 0},
         {0, 0, 1, 0},
         {0, 0, 0, 1}};
+
+    mat4x4_translate(model_matrix, position[0], position[1], position[2]);
+    mat4x4_scale_aniso(model_matrix, model_matrix, scale[0] / 2, scale[1] / 2, scale[2] / 2);
 
     glUniformMatrix4fv(glGetUniformLocation(state.shader_default, "model"), 1, GL_FALSE, &model_matrix[0][0]);
     glUniform4fv(glad_glGetUniformLocation(state.shader_default, "color"), 1, (GLfloat[]){1.0f, 1.0f, 1.0f, 1.0f});

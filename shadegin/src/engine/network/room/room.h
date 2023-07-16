@@ -20,6 +20,7 @@
 #include "../../common/types/types.h"
 
 typedef struct ServerClient ServerClient;
+typedef struct ServerClientHandle ServerClientHandle;
 typedef struct Message Message;
 
 /**
@@ -92,7 +93,7 @@ struct ARoom
      */
     Room *(*GetRoom)(Server *server, ull room_id);
 
-    void (*JoinClient)(Room *room, ServerClient *client);
+    void (*JoinClient)(Room *room, ServerClientHandle *client_stream);
     void (*RemoveClient)(Room *room, ServerClient *client);
 };
 

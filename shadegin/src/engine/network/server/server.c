@@ -251,7 +251,7 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         if (error)
             ERROR_EXIT("Error binding UDP socket %s\n", uv_strerror(error));
 
-        Message response = {0, CONNECTION_RESPONSE, 0, NULL};
+        Message response = {0, CONNECTION_RESPONSE, 0, 0, NULL};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }
@@ -262,7 +262,7 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         // Do all the Login stuff TODO:
 
         // Respond with the client id
-        Message response = {client->id, LOGIN_RESPONSE, 0, NULL};
+        Message response = {client->id, LOGIN_RESPONSE, 0, 0, NULL};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }
@@ -279,10 +279,10 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
             free(message);
             return;
         }
-        ARoom->JoinClient(room, client);
+        ARoom->JoinClient(room, client_stream);
 
         // Respond with the room id
-        Message response = {client->id, CREATE_ROOM_RESPONSE, sizeof(ull), &room->room_id};
+        Message response = {client->id, CREATE_ROOM_RESPONSE, 0, sizeof(ull), &room->room_id};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }
@@ -308,10 +308,10 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
             free(message);
             return;
         }
-        ARoom->JoinClient(room, client);
+        ARoom->JoinClient(room, client_stream);
 
         // Respond with the room id
-        Message response = {client->id, JOIN_ROOM_RESPONSE, sizeof(ull), &room->room_id};
+        Message response = {client->id, JOIN_ROOM_RESPONSE, 0, sizeof(ull), &room->room_id};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }
@@ -368,6 +368,7 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
 
 static void SendObject(GameObject *object, int client_id)
 {
+    printf("Sending object of id %llu to %i\n", object->id, client_id);
     ServerClient *client = AServer->GetClient(client_id);
     if (client == NULL)
     {
@@ -375,8 +376,21 @@ static void SendObject(GameObject *object, int client_id)
     }
 
     SerializedDerived derived = AGameObject->Serialize(object);
-    Message message = {client_id, DATA_RESPONSE, derived.len, derived.data};
+    Message message = {client_id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_udp(&client->UDPsocket, &message);
+}
+
+static void SendObjectTCP(GameObject *object, ServerClientHandle *client_stream)
+{
+    ServerClient *client = client_stream->client;
+    if (client == NULL)
+        ERROR_EXIT("Client not found!\n");
+
+    printf("Synchronizing object of id %llu to %i\n", object->id, client->id);
+
+    SerializedDerived derived = AGameObject->Serialize(object);
+    Message message = {client->id, DATA_RESPONSE, 0, derived.len, derived.data};
+    send_data_tcp((uv_stream_t *)client_stream, &message);
 }
 
 static Server *GetServer()
@@ -396,5 +410,6 @@ struct AServer AServer[1] =
         ReceiveDataTCP,
         ReceiveDataUDP,
         SendObject,
+        SendObjectTCP,
         GetServer,
     }};

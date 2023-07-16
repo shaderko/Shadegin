@@ -33,7 +33,7 @@ static Client *Init()
 
     // Server destination address
     struct sockaddr_in6 dest;
-    error = uv_ip6_addr("fe80::5667:51ff:fe06:64bb", 8390, &dest);
+    error = uv_ip6_addr("::1", 1234, &dest);
     if (error < 0)
     {
         free(client);
@@ -130,7 +130,7 @@ static void connect_client(uv_connect_t *req, int status)
 
     printf("Sending address: %s and port: %hu to server\n", address_str, ntohs(addr_in->sin6_port));
 
-    Message message = {client->id, CONNECTION_REQUEST, sizeof(client->address), &client->address};
+    Message message = {client->id, CONNECTION_REQUEST, 0, sizeof(client->address), &client->address};
     send_data_tcp((uv_stream_t *)&client->TCPsocket, &message);
 }
 
@@ -144,12 +144,56 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         return;
     }
 
-    Message *message = malloc(sizeof(Message));
-    memcpy(message, buf->base, sizeof(Message));
+    printf("nread: %zi\n", nread);
 
-    message->data = malloc(message->length);
-    memcpy(message->data, buf->base + sizeof(Message), message->length);
+    size_t offset = 0;
+    while (nread > 0)
+    {
+        Message *message;
+        if (client->partial_msg == NULL)
+        {
+            // This is the start of a new message
+            message = malloc(sizeof(Message));
+            memcpy(message, buf->base + offset, sizeof(Message));
+            message->data = malloc(message->length);
+            message->data_received = 0;
+            client->partial_msg = message;
+            offset += sizeof(Message);
+            nread -= sizeof(Message);
+        }
+        else
+        {
+            // This is a continuation of a message
+            message = client->partial_msg;
+        }
 
+        printf("nread after msg: %zi\n", nread);
+
+        // Copy data from buf to message
+        size_t to_copy = (message->length - message->data_received < nread) ? message->length - message->data_received : nread;
+        memcpy(message->data + message->data_received, buf->base + offset, to_copy);
+        message->data_received += to_copy;
+        offset += to_copy;
+        nread -= to_copy;
+
+        // If the message is not fully received yet, break the loop
+        if (message->data_received < message->length)
+        {
+            puts("Message not fully received yet.");
+            break;
+        }
+
+        // Full message received, reset partial message
+        client->partial_msg = NULL;
+
+        AClient->ParsingDataTCP(stream, message);
+    }
+
+    free(buf->base);
+}
+
+static void ParsingDataTCP(uv_stream_t *stream, Message *message)
+{
     if (message->type == CONNECTION_RESPONSE)
     {
         puts("Connected to server.");
@@ -159,12 +203,11 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
 
         puts("Sending login request.");
 
-        Message response = {client->id, LOGIN_REQUEST, 0, NULL};
+        Message response = {client->id, LOGIN_REQUEST, 0, 0, NULL};
         send_data_tcp(stream, &response);
 
         free(message->data);
         free(message);
-        free(buf->base);
         return;
     }
 
@@ -212,17 +255,40 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         client->id = -1;
         break;
     }
+    case DATA_RESPONSE:
+    {
+        puts("Received object TCP");
+
+        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
+        memcpy(object, message->data, sizeof(SerializedGameObject));
+
+        // // Collider
+        object->collider.derived.data = malloc(object->collider.derived.len);
+        memcpy(object->collider.derived.data, message->data + sizeof(SerializedGameObject), object->collider.derived.len);
+
+        // // Renderer
+        object->renderer.derived.data = malloc(object->renderer.derived.len);
+        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
+
+        AGameObject->Deserialize(object, NULL);
+
+        free(object->collider.derived.data);
+        free(object->renderer.derived.data);
+        free(object);
+
+        break;
+    }
     default:
         break;
     }
 
     free(message->data);
     free(message);
-    free(buf->base);
 }
 
 static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned int flags)
 {
+    puts("Received object");
     if (nread < 0)
     {
         fprintf(stderr, "Read error %s\n", uv_err_name(nread));
@@ -248,7 +314,7 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
     SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
     memcpy(object, buf->base + sizeof(Message), sizeof(SerializedGameObject));
 
-    AGameObject->Deserialize(object, object->collider.derived.data, object->renderer.derived.data, NULL);
+    AGameObject->Deserialize(object, NULL);
 
     free(message->data);
     free(message);
@@ -271,7 +337,7 @@ static void JoinRoom(Client *client, ull room_id)
 
     void *data = malloc(sizeof(ull));
     memcpy(data, &room_id, sizeof(ull));
-    Message message = {client->id, JOIN_ROOM_REQUEST, sizeof(ull), data};
+    Message message = {client->id, JOIN_ROOM_REQUEST, 0, sizeof(ull), data};
     if (room_id == 0)
     {
         message.type = CREATE_ROOM_REQUEST;
@@ -291,7 +357,7 @@ static void SendObject(Client *client, GameObject *object)
         return;
     }
 
-    printf("sending game object %lld\n", object->id);
+    printf("sending game object %llu\n", object->id);
     if (client->room_id <= 0)
     {
         puts("No room id");
@@ -299,7 +365,7 @@ static void SendObject(Client *client, GameObject *object)
     }
 
     SerializedDerived derived = AGameObject->Serialize(object);
-    Message message = {client->id, DATA_RESPONSE, derived.len, derived.data};
+    Message message = {client->id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_udp(&client->UDPsend_socket, &message);
 }
 
@@ -307,6 +373,7 @@ struct AClient AClient[1] =
     {{
         Init,
         ReceiveDataTCP,
+        ParsingDataTCP,
         ReceiveDataUDP,
         JoinRoom,
         SendObject,

@@ -25,6 +25,8 @@ struct Client
     int id;
     ull room_id;
 
+    Message *partial_msg;
+
     uv_udp_t UDPsend_socket;
     uv_udp_t UDPrecv_socket;
     uv_tcp_t TCPsocket;
@@ -42,6 +44,7 @@ struct AClient
     Client *(*Init)();
 
     void (*ReceiveDataTCP)(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+    void (*ParsingDataTCP)(uv_stream_t *stream, Message *message);
     void (*ReceiveDataUDP)(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned int flags);
 
     void (*JoinRoom)(Client *client, ull room_id);

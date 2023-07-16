@@ -89,6 +89,8 @@ struct AGameObject
      */
     GameObject *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
 
+    GameObject *(*InitMesh)(bool is_static, float mass, vec3 position, vec3 size, Model *model);
+
     GameObject *(*GetGameObjectByIndex)(int index);
 
     /**
@@ -113,7 +115,7 @@ struct AGameObject
      * Create new one if it doesn't exist
      * If it does apply all variables
      */
-    GameObject *(*Deserialize)(SerializedGameObject *object, int *collider, int *renderer, Scene *scene);
+    GameObject *(*Deserialize)(SerializedGameObject *object, Scene *scene);
 };
 
 extern struct AGameObject AGameObject[1];

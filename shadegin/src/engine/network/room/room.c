@@ -90,7 +90,7 @@ static int RoomGame(void *room_init)
     printf("Loading map for room %lld\n", room->room_id);
 
     room->scene = AScene->Init(&((vec3){0, 0, 0}));
-    AScene->ReadFile(room->scene, "file");
+    AScene->ReadFile(room->scene, "file2");
 
     printf("Map loaded, starting main loop\n");
 
@@ -105,7 +105,7 @@ static int RoomGame(void *room_init)
         AScene->Update(room->scene);
 
         // Send game objects
-        ARoom->SendData(room);
+        // ARoom->SendData(room);
 
         Uint32 currentTime = SDL_GetTicks();
         Uint32 elapsedTime = currentTime - startTime;
@@ -144,17 +144,22 @@ static void ProcessData(Room *room)
 
         Message *message = room->queue->data[index];
 
-        // SerializedGameObject *object = NULL;
-        // int *collider;
-        // int *renderer;
+        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
+        memcpy(object, message->data, sizeof(SerializedGameObject));
 
-        SerializedGameObject data;
-        memcpy(&data, message->data, sizeof(SerializedGameObject));
-        int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
-        memcpy(ad_data, message->data + sizeof(SerializedGameObject), data.collider.derived.len + data.renderer.derived.len);
-        AScene->Add(room->scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len, room->scene));
+        // Collider
+        object->collider.derived.data = malloc(object->collider.derived.len);
+        memcpy(object->collider.derived.data, message->data + sizeof(SerializedGameObject), object->collider.derived.len);
 
-        free(ad_data);
+        // Renderer
+        object->renderer.derived.data = malloc(object->renderer.derived.len);
+        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
+
+        AScene->Add(room->scene, AGameObject->Deserialize(object, room->scene));
+
+        free(object->collider.derived.data);
+        free(object->renderer.derived.data);
+        free(object);
         free(message->data);
         free(message);
 
@@ -260,8 +265,9 @@ static Room *GetRoom(Server *server, ull room_id)
  * @param room - room to add the client to
  * @param client - client to add
  */
-static void JoinClient(Room *room, ServerClient *client)
+static void JoinClient(Room *room, ServerClientHandle *client_stream)
 {
+    ServerClient *client = client_stream->client;
     for (int i = 0; i < room->clients_size; i++)
     {
         if (room->clients[i] == client)
@@ -280,6 +286,28 @@ static void JoinClient(Room *room, ServerClient *client)
     room->clients_size++;
 
     client->room = room;
+
+    puts("Synchronizing client");
+
+    if (!room->scene)
+    {
+        puts("Client joined room without scene, waiting for scene creation");
+        while (!room->scene)
+            SDL_Delay(100);
+    }
+
+    // Send all the game objects to the client
+    for (int i = 0; i < room->scene->objects_size; i++)
+    {
+        puts("Sending object");
+        GameObject *object = room->scene->objects[i];
+        if (!object)
+        {
+            ERROR_EXIT("Object is NULL!\n");
+        }
+
+        AServer->SendObjectTCP(object, client_stream);
+    }
 
     puts("Client joined room");
 }

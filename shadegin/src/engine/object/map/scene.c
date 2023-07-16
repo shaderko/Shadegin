@@ -88,18 +88,22 @@ static void ReadFile(Scene *scene, const char *file)
     // Read objects data
     for (int i = 0; i < size; i++)
     {
-        SerializedGameObject data;
-        fread(&data, sizeof(SerializedGameObject), 1, in);
+        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
+        fread(object, sizeof(SerializedGameObject), 1, in);
 
-        // SerializedDerived collider = data.collider.derived;
-        // SerializedDerived renderer = data.renderer.derived;
+        // Collider
+        object->collider.derived.data = malloc(object->collider.derived.len);
+        fread(object->collider.derived.data, object->collider.derived.len, 1, in);
 
-        int *ad_data = malloc(data.collider.derived.len + data.renderer.derived.len);
+        // Renderer
+        object->renderer.derived.data = malloc(object->renderer.derived.len);
+        fread(object->renderer.derived.data, object->renderer.derived.len, 1, in);
 
-        fread(ad_data, data.collider.derived.len + data.renderer.derived.len, 1, in);
-        AScene->Add(scene, AGameObject->Deserialize(&data, ad_data, ad_data + data.collider.derived.len, scene));
+        AScene->Add(scene, AGameObject->Deserialize(object, scene));
 
-        free(ad_data);
+        free(object->collider.derived.data);
+        free(object->renderer.derived.data);
+        free(object);
     }
     fclose(in);
 }
