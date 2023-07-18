@@ -219,6 +219,28 @@ static SerializedDerived Serialize(GameObject *object)
     return result;
 }
 
+static SerializedDerived SerializePartial(GameObject *object)
+{
+    SerializedGameObject serialize_obj = {
+        object->id,
+        {object->position[0], object->position[1], object->position[2]},
+        {object->velocity[0], object->velocity[1], object->velocity[2]},
+        object->mass,
+        object->is_static,
+        {{0, 0, 0}, 0, {0, NULL}},
+        {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, NULL}}};
+
+    SerializedDerived result;
+    result.len = sizeof(SerializedGameObject);
+    result.data = malloc(result.len);
+    if (!result.data)
+        ERROR_EXIT("SerializedDerived memory couldn't be allocated!\n");
+
+    memcpy((char *)result.data, &serialize_obj, sizeof(SerializedGameObject));
+
+    return result;
+}
+
 /**
  * @brief Deserialize the game object, update it's variables and create a new one if it doesn't exist
  *
@@ -293,5 +315,6 @@ struct AGameObject AGameObject[1] =
         Update,
         UpdateGameObjects,
         Serialize,
+        SerializePartial,
         Deserialize,
     }};

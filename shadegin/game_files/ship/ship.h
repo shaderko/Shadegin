@@ -14,7 +14,7 @@
 
 #include <linmath.h>
 
-#include "../../src/engine/objects/game_objects/game_object.h"
+#include "../../src/engine/object/game_object/game_object.h"
 
 typedef struct Ship Ship;
 struct Ship
@@ -55,7 +55,7 @@ struct Ship
 
 struct AShip
 {
-    Ship *(*Init)();
+    Ship *(*Init)(Model *model);
     void (*Update)(Ship *ship);
     void (*Destroy)(Ship *ship);
 };

@@ -109,6 +109,7 @@ struct AGameObject
      * Serialize a game object for network transfer
      */
     SerializedDerived (*Serialize)(GameObject *object);
+    SerializedDerived (*SerializePartial)(GameObject *object);
 
     /**
      * Deserialize network Game Object

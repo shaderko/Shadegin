@@ -13,6 +13,7 @@
 #include <linmath.h>
 
 #include "../../util/util.h"
+#include "../network/network.h"
 #include "room.h"
 #include "../server/server.h"
 #include "../../object/game_object/game_object.h"
@@ -105,7 +106,7 @@ static int RoomGame(void *room_init)
         AScene->Update(room->scene);
 
         // Send game objects
-        // ARoom->SendData(room);
+        ARoom->SendData(room);
 
         Uint32 currentTime = SDL_GetTicks();
         Uint32 elapsedTime = currentTime - startTime;
@@ -308,6 +309,11 @@ static void JoinClient(Room *room, ServerClientHandle *client_stream)
 
         AServer->SendObjectTCP(object, client_stream);
     }
+
+    // Send synchronization complete message to client
+
+    Message message = {client->id, SYNCHRONIZATION_COMPLETE, 0, 0, NULL};
+    send_data_tcp((uv_stream_t *)client_stream, &message);
 
     puts("Client joined room");
 }

@@ -1,7 +1,12 @@
-/*
- * Renderer used for rendering objects on the screen
+/**
+ * @file renderer.h
+ * @author https://github.com/shaderko
+ * @brief Used to render a model
+ * @version 0.1
+ * @date 2023-07-18
  *
- * Used with GameObjects
+ * @copyright Copyright (c) 2023
+ *
  */
 
 #ifndef RENDERER_H
@@ -15,21 +20,12 @@
 #include "../serialized/serialized.h"
 #include "../model/model.h"
 
-typedef enum RendererType RendererType;
-enum RendererType
-{
-    NONE_RENDERER,
-    BOX_RENDERER,
-    MESH_RENDERER,
-};
-
 typedef struct SerializedRenderer SerializedRenderer;
 struct SerializedRenderer
 {
     vec3 position;
     vec3 rotation;
     vec3 scale;
-    RendererType type;
     SerializedDerived derived;
 };
 
@@ -44,11 +40,6 @@ struct Renderer
     vec3 rotation;
 
     vec3 scale;
-
-    /**
-     * Renderer type for serialization
-     */
-    RendererType type;
 
     Model *model;
 };

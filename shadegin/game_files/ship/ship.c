@@ -11,9 +11,11 @@
 
 #include "ship.h"
 
-static Ship Init()
+static Ship *Init(Model *model)
 {
-    Ship ship = {0};
+    Ship *ship = calloc(1, sizeof(Ship));
+
+    ship->object = AGameObject->InitMesh(false, 10, (vec3){0, 0, 0}, (vec3){10, 10, 10}, model);
 
     return ship;
 }

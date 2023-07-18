@@ -118,11 +118,6 @@ static void connect_client(uv_connect_t *req, int status)
     if (error)
         ERROR_EXIT("Could't start listening for messages on TCP socket: %s\n", uv_strerror(error));
 
-    // Start listening for messages on UDP socket
-    error = uv_udp_recv_start(&client->UDPrecv_socket, alloc_buffer, AClient->ReceiveDataUDP);
-    if (error < 0)
-        ERROR_EXIT("Couldn't start listening for messages on UDP socket: %s\n", uv_strerror(error));
-
     // Get client's address and port
     struct sockaddr_in6 *addr_in = (struct sockaddr_in6 *)&client->address;
     char address_str[INET6_ADDRSTRLEN];
@@ -262,11 +257,11 @@ static void ParsingDataTCP(uv_stream_t *stream, Message *message)
         SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
         memcpy(object, message->data, sizeof(SerializedGameObject));
 
-        // // Collider
+        // Collider
         object->collider.derived.data = malloc(object->collider.derived.len);
         memcpy(object->collider.derived.data, message->data + sizeof(SerializedGameObject), object->collider.derived.len);
 
-        // // Renderer
+        // Renderer
         object->renderer.derived.data = malloc(object->renderer.derived.len);
         memcpy(object->renderer.derived.data, message->data + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
 
@@ -277,6 +272,14 @@ static void ParsingDataTCP(uv_stream_t *stream, Message *message)
         free(object);
 
         break;
+    }
+    case SYNCHRONIZATION_COMPLETE:
+    {
+        int error;
+        // Start listening for messages on UDP socket
+        error = uv_udp_recv_start(&client->UDPrecv_socket, alloc_buffer, AClient->ReceiveDataUDP);
+        if (error < 0)
+            ERROR_EXIT("Couldn't start listening for messages on UDP socket: %s\n", uv_strerror(error));
     }
     default:
         break;
@@ -313,6 +316,14 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
 
     SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
     memcpy(object, buf->base + sizeof(Message), sizeof(SerializedGameObject));
+
+    // // Collider
+    // object->collider.derived.data = malloc(object->collider.derived.len);
+    // memcpy(object->collider.derived.data, buf->base + sizeof(Message) + sizeof(SerializedGameObject), object->collider.derived.len);
+
+    // // Renderer
+    // object->renderer.derived.data = malloc(object->renderer.derived.len);
+    // memcpy(object->renderer.derived.data, buf->base + sizeof(Message) + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
 
     AGameObject->Deserialize(object, NULL);
 

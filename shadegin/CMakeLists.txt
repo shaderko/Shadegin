@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.11)
 project(MyGame)
 
 # set the source files
-set(GAME_FILES game_files/player.c game_files/walls/wall.c)
+set(GAME_FILES game_files/player.c game_files/ship/ship.c game_files/walls/wall.c)
 set(RENDER src/engine/render/render/render_init.c src/engine/render/render/render.c src/engine/render/render/render_util.c src/engine/threading/thread_pool/thread_pool.c)
 set(CAMERA src/engine/render/camera/camera.c)
 set(IO src/engine/io/io.c)

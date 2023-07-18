@@ -375,7 +375,7 @@ static void SendObject(GameObject *object, int client_id)
         return;
     }
 
-    SerializedDerived derived = AGameObject->Serialize(object);
+    SerializedDerived derived = AGameObject->SerializePartial(object);
     Message message = {client_id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_udp(&client->UDPsocket, &message);
 }

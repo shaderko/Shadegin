@@ -187,7 +187,7 @@ void render_mesh(Model *model, vec3 position, vec3 scale)
 
     // assuming you are using GL_ELEMENT_ARRAY_BUFFER for indices
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.ebo_mesh);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model->indicies_count * 3 * sizeof(unsigned int), model->indicies, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, model->indicies_count * sizeof(unsigned int), model->indicies, GL_STATIC_DRAW);
 
     mat4x4 model_matrix = {
         {1, 0, 0, 0},
@@ -204,7 +204,7 @@ void render_mesh(Model *model, vec3 position, vec3 scale)
     glBindVertexArray(state.vao_mesh);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawElements(GL_TRIANGLES, model->indicies_count * 3, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, model->indicies_count, GL_UNSIGNED_INT, NULL);
 
     glBindVertexArray(0);
 }

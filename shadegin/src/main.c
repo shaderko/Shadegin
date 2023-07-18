@@ -10,7 +10,7 @@
 #include "engine/render/camera/camera.h"
 
 #include "../game_files/player.h"
-// #include "../game_files/walls/wall.h"
+#include "../game_files/ship/ship.h"
 
 #include "engine/object/game_object/game_object.h"
 #include "engine/network/server/server.h"
@@ -81,17 +81,15 @@ int main(int argc, char *argv[])
 
     client = AClient->Init();
 
-    // Scene *scene = AScene->Init(&(vec3){0, 0, 0});
-    // GameObject *object1 = AGameObject->InitBox(false, 1, (vec3){0, 0, 0}, (vec3){100, 100, 100});
-    // GameObject *object2 = AGameObject->InitMesh(false, 1, (vec3){0, 0, 0}, (vec3){100, 100, 100}, AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/cube.obj"));
-    // AScene->Add(scene, object1);
-    // AScene->Add(scene, object2);
-
-    // AScene->WriteToFile(scene, "Desktop/file2");
+    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
+    for (int i = 0; i < 1; i++)
+    {
+        // GameObject *object = AGameObject->InitMesh(false, 1, (vec3){0, i * 100, 0}, (vec3){20, 1, 20}, AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/ship.obj"));
+        Ship *ship = AShip->Init(AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/ship.obj"));
+        AScene->Add(scene, ship->object);
+    }
+    AScene->WriteToFile(scene, "Desktop/file2");
     // AScene->ReadFile(scene, "file2");
-
-    // Model *model = AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/cube.obj");
-    // Renderer *renderer = ARenderer->InitMesh(model);
 
     config_init();
     render_init();
