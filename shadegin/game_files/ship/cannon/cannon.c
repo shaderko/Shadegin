@@ -17,16 +17,16 @@ static Cannon *Init(Model *model, float max_ammo, float max_heat)
     if (!cannon)
         ERROR_EXIT("Couldn't allocate memory for Cannon");
 
-    cannon->object = AObject.InitMesh(true, 0, (vec3){0, 0, 0}, (vec3){20, 20, 20}, model);
+    cannon->object = AObject.InitMesh(true, false, 0, (vec3){0, 0, 0}, (vec3){20, 20, 20}, model);
     cannon->max_ammo = max_ammo;
     cannon->max_heat = max_heat;
 
     return cannon;
 }
 
-static void Render(Cannon *cannon)
+static void Render(Cannon *cannon, vec3 position)
 {
-    AObject.Render(cannon->object);
+    AObject.RenderPosition(cannon->object, position);
 }
 
 static void Destroy(Cannon *cannon)

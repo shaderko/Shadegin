@@ -64,6 +64,8 @@ struct Ship
 struct AShip
 {
     Ship *(*Init)(Model *model);
+    void (*Render)(Ship *ship);
+    void (*RenderShips)(void);
     void (*Update)(Ship *ship);
     void (*AddCannon)(Ship *ship, Cannon *cannon);
     void (*AddWheel)(Ship *ship, Wheel *wheel);

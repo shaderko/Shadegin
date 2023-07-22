@@ -32,6 +32,7 @@ struct SerializedObject
     vec3 velocity;
     float mass;
     bool is_static;
+    bool should_render;
     SerializedCollider collider;
     SerializedRenderer renderer;
 };
@@ -62,6 +63,8 @@ struct Object
      */
     bool is_static;
 
+    bool should_render;
+
     /**
      * Collider of object
      */
@@ -82,14 +85,14 @@ struct AObject
      */
     Object *(*Init)();
 
-    Object *(*Create)(bool is_static, float mass, vec3 position);
+    Object *(*Create)(bool is_static, bool should_render, float mass, vec3 position);
 
     /**
      * Create an object box
      */
-    Object *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
+    Object *(*InitBox)(bool is_static, bool should_render, float mass, vec3 position, vec3 size);
 
-    Object *(*InitMesh)(bool is_static, float mass, vec3 position, vec3 size, Model *model);
+    Object *(*InitMesh)(bool is_static, bool should_render, float mass, vec3 position, vec3 size, Model *model);
 
     Object *(*GetObjectByIndex)(int index);
 
@@ -97,6 +100,7 @@ struct AObject
      * Render object in position of object with the local position of renderer
      */
     void (*Render)(Object *object);
+    void (*RenderPosition)(Object *object, vec3 position);
     void (*RenderObjects)();
 
     /**

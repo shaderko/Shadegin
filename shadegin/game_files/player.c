@@ -31,7 +31,7 @@ Player *Init(vec2 position, float speed)
 
     // Assign values
     player->speed = 0;
-    player->object = AObject.InitBox(true, 1, (vec3){position[0], position[1], 1}, (vec3){5, 5, 5});
+    player->object = AObject.InitBox(true, true, 1, (vec3){position[0], position[1], 1}, (vec3){5, 5, 5});
 
     players[players_size] = player;
     players_size++;

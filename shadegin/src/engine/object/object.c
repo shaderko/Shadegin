@@ -62,7 +62,7 @@ static void Destroy(Object *object)
  * @param is_static dynamic physics or static
  * @return Object*
  */
-static Object *Create(bool is_static, float mass, vec3 position)
+static Object *Create(bool is_static, bool should_render, float mass, vec3 position)
 {
     Object *object = Init();
 
@@ -72,6 +72,7 @@ static Object *Create(bool is_static, float mass, vec3 position)
     memcpy(object->position, position, sizeof(vec3));
     object->mass = mass;
     object->is_static = is_static;
+    object->should_render = should_render;
 
     object->collider = NULL;
     object->renderer = NULL;
@@ -85,9 +86,9 @@ static Object *Create(bool is_static, float mass, vec3 position)
  * @param is_static dynamic or static physics
  * @return Object*
  */
-static Object *InitBox(bool is_static, float mass, vec3 position, vec3 size)
+static Object *InitBox(bool is_static, bool should_render, float mass, vec3 position, vec3 size)
 {
-    Object *object = AObject.Create(is_static, mass, position);
+    Object *object = AObject.Create(is_static, should_render, mass, position);
 
     object->collider = ACollider->InitBox((vec3){0, 0, 0}, size);
     object->renderer = AObject.ARenderer->InitBox((vec3){0, 0, 0}, (vec3){0, 0, 0}, size);
@@ -106,12 +107,12 @@ static Object *InitBox(bool is_static, float mass, vec3 position, vec3 size)
  * @param model
  * @return Object*
  */
-static Object *InitMesh(bool is_static, float mass, vec3 position, vec3 size, Model *model)
+static Object *InitMesh(bool is_static, bool should_render, float mass, vec3 position, vec3 size, Model *model)
 {
     if (!model)
         ERROR_RETURN(NULL, "Object was not initialized because the model was NULL!\n");
 
-    Object *object = AObject.Create(is_static, mass, position);
+    Object *object = AObject.Create(is_static, should_render, mass, position);
 
     object->collider = ACollider->InitBox((vec3){0, 0, 0}, size);
     object->renderer = AObject.ARenderer->InitMesh(model, (vec4){1, 1, 1, 1}, (vec3){0, 0, 0}, (vec3){0, 0, 0}, size);
@@ -144,6 +145,13 @@ static void Render(Object *object)
     AObject.ARenderer->Render(object->renderer, object->position);
 }
 
+static void RenderPosition(Object *object, vec3 position)
+{
+    vec3 final_position;
+    vec3_add(final_position, position, object->position);
+    AObject.ARenderer->Render(object->renderer, final_position);
+}
+
 /**
  * @brief Render all objects
  */
@@ -151,6 +159,8 @@ static void RenderObjects()
 {
     for (int x = 0; x < ObjectsSize; x++)
     {
+        if (!ObjectsArray[x]->should_render)
+            continue;
         Render(ObjectsArray[x]);
     }
 }
@@ -232,6 +242,7 @@ static SerializedDerived Serialize(Object *object)
         {object->velocity[0], object->velocity[1], object->velocity[2]},
         object->mass,
         object->is_static,
+        object->should_render,
         collider,
         renderer};
 
@@ -328,7 +339,7 @@ static Object *Deserialize(SerializedObject *object, Scene *scene)
         }
     }
 
-    Object *new_obj = AObject.Create(object->is_static, object->mass, object->position);
+    Object *new_obj = AObject.Create(object->is_static, object->should_render, object->mass, object->position);
     new_obj->id = object->id;
     switch (object->collider.type)
     {
@@ -355,6 +366,7 @@ struct AObject AObject =
         .InitMesh = InitMesh,
         .GetObjectByIndex = GetObjectByIndex,
         .Render = Render,
+        .RenderPosition = RenderPosition,
         .RenderObjects = RenderObjects,
         .Update = Update,
         .UpdateObjects = UpdateObjects,

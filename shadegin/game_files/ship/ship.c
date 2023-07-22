@@ -12,11 +12,14 @@
 #include "ship.h"
 #include "../../src/engine/object/object.h"
 
+static Ship **ships = NULL;
+static int ship_count = 0;
+
 static Ship *Init(Model *model)
 {
     Ship *ship = calloc(1, sizeof(Ship));
 
-    ship->object = AObject.InitMesh(true, 10, (vec3){0, 0, 0}, (vec3){10, 10, 10}, model);
+    ship->object = AObject.InitMesh(true, false, 10, (vec3){0, 0, 0}, (vec3){10, 10, 10}, model);
 
     // wheel
     ship->wheel = malloc(sizeof(ShipWheel));
@@ -27,8 +30,12 @@ static Ship *Init(Model *model)
     for (int i = 0; i < ship->max_cannons; i++)
     {
         ship->canons[i] = malloc(sizeof(ShipCannon));
-        memcpy(ship->canons[i]->position, (vec3){0, 0, 0}, sizeof(vec3));
+        memcpy(ship->canons[i]->position, (vec3){100, 0, 0}, sizeof(vec3));
     }
+
+    ships = realloc(ships, sizeof(Ship *) * (ship_count + 1));
+    ships[ship_count] = ship;
+    ship_count++;
 
     return ship;
 }
@@ -47,7 +54,8 @@ static void Render(Ship *ship)
     {
         if (ship->canons[i]->cannon)
         {
-            ACannon.Render(ship->canons[i]->cannon);
+            printf("Rendering cannon\n");
+            ACannon.Render(ship->canons[i]->cannon, ship->canons[i]->position);
         }
     }
 
@@ -55,6 +63,14 @@ static void Render(Ship *ship)
     if (ship->wheel->wheel)
     {
         AWheel.Render(ship->wheel->wheel);
+    }
+}
+
+static void RenderShips()
+{
+    for (int i = 0; i < 10; i++)
+    {
+        Render(ships[i]);
     }
 }
 
@@ -112,6 +128,8 @@ static void Destroy(Ship *ship)
 
 struct AShip AShip[1] = {{
     Init,
+    Render,
+    RenderShips,
     Update,
     AddCannon,
     AddWheel,

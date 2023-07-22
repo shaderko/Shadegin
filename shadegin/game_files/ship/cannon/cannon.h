@@ -45,7 +45,7 @@ struct ACannon
 {
     Cannon *(*Init)(Model *model, float max_ammo, float max_heat);
 
-    void (*Render)(Cannon *cannon);
+    void (*Render)(Cannon *cannon, vec3 position);
 
     void (*Destroy)(Cannon *cannon);
 };

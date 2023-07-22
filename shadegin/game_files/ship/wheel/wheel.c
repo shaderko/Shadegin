@@ -17,7 +17,7 @@ static Wheel *Init(Model *model, float max_ammo, float max_heat)
     if (!wheel)
         ERROR_EXIT("Couldn't allocate memory for Wheel");
 
-    wheel->object = AObject.InitMesh(true, 0, (vec3){0, 0, 0}, (vec3){1, 1, 1}, model);
+    wheel->object = AObject.InitMesh(true, false, 0, (vec3){0, 0, 0}, (vec3){1, 1, 1}, model);
     wheel->max_ammo = max_ammo;
     wheel->max_heat = max_heat;
 

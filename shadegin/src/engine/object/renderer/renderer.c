@@ -64,7 +64,7 @@ static void Render(Renderer *renderer, vec3 position)
     }
 
     // Adjust the position to be relative to world space by adding the position of the renderer to the position of the object
-    vec3 world_position = {0, 0, 0};
+    vec3 world_position;
     vec3_add(world_position, position, renderer->position);
 
     render_mesh(renderer->model, world_position, renderer->scale); // renderer->rotation, renderer->scale TODO:

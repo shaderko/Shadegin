@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
         render_begin_pixelated();
 
         AObject.RenderObjects();
+        AShip->RenderShips();
 
         render_end_pixelated();
 
