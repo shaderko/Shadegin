@@ -13,7 +13,7 @@
 
 #include "../../util/util.h"
 #include "scene.h"
-#include "../game_object/game_object.h"
+#include "../object.h"
 
 static Scene *Init(vec3 *size)
 {
@@ -34,17 +34,17 @@ static void Update(Scene *scene)
 {
     for (int i = 0; i < scene->objects_size; i++)
     {
-        AGameObject->Update(scene->objects[i]);
+        AObject.Update(scene->objects[i]);
     }
 }
 
-static void Add(Scene *scene, GameObject *object)
+static void Add(Scene *scene, Object *object)
 {
     if (!scene || !object)
     {
         return;
     }
-    scene->objects = realloc(scene->objects, sizeof(GameObject *) * (scene->objects_size + 1));
+    scene->objects = realloc(scene->objects, sizeof(Object *) * (scene->objects_size + 1));
     scene->objects[scene->objects_size] = object;
     scene->objects_size++;
 }
@@ -64,9 +64,9 @@ static void WriteToFile(Scene *scene, const char *file)
     // Write objects data
     for (int i = 0; i < scene->objects_size; i++)
     {
-        GameObject *object = scene->objects[i];
+        Object *object = scene->objects[i];
 
-        SerializedDerived serialized_object = AGameObject->Serialize(object);
+        SerializedDerived serialized_object = AObject.Serialize(object);
         fwrite(serialized_object.data, serialized_object.len, 1, out);
     }
 
@@ -88,8 +88,8 @@ static void ReadFile(Scene *scene, const char *file)
     // Read objects data
     for (int i = 0; i < size; i++)
     {
-        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
-        fread(object, sizeof(SerializedGameObject), 1, in);
+        SerializedObject *object = malloc(sizeof(SerializedObject));
+        fread(object, sizeof(SerializedObject), 1, in);
 
         // Collider
         object->collider.derived.data = malloc(object->collider.derived.len);
@@ -99,7 +99,7 @@ static void ReadFile(Scene *scene, const char *file)
         object->renderer.derived.data = malloc(object->renderer.derived.len);
         fread(object->renderer.derived.data, object->renderer.derived.len, 1, in);
 
-        AScene->Add(scene, AGameObject->Deserialize(object, scene));
+        AScene->Add(scene, AObject.Deserialize(object, scene));
 
         free(object->collider.derived.data);
         free(object->renderer.derived.data);
@@ -109,9 +109,9 @@ static void ReadFile(Scene *scene, const char *file)
 }
 
 // Load map
-// GameObject *object = AGameObject->InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
-// GameObject *object1 = AGameObject->InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
-// GameObject *object2 = AGameObject->InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
+// Object *object = AObject.InitBox(false, 1, (vec3){100, 400, 0}, (vec3){100, 100, 100});
+// Object *object1 = AObject.InitBox(true, 1, (vec3){100, 100, 0}, (vec3){300, 100, 100});
+// Object *object2 = AObject.InitBox(false, 1, (vec3){100, 100, 0}, (vec3){100, 100, 100});
 // AScene->Add(room->scene, object);
 // AScene->Add(room->scene, object1);
 // AScene->Add(room->scene, object2);

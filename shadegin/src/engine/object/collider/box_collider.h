@@ -51,7 +51,7 @@ struct ABoxCollider
     /**
      * Check if two box colliders are colliding
      */
-    bool (*Collide)(GameObject *object1, GameObject *object2);
+    bool (*Collide)(Object *object1, Object *object2);
 
     /**
      * Serialize box collider

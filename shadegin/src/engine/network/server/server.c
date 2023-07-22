@@ -125,7 +125,7 @@ static ServerClient *CreateClient()
     if (!server->clients)
         ERROR_EXIT("Server clients couldn't be allocated!\n");
 
-    ServerClient client = {server->clients_size, SDL_GetTicks(), 0, 0, 0};
+    ServerClient client = {server->clients_size, SDL_GetTicks(), 0, 0, 0, 0};
 
     puts("Client created!");
 
@@ -366,21 +366,21 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
     }
 }
 
-static void SendObject(GameObject *object, int client_id)
+static void SendObject(Object *object, int client_id)
 {
-    printf("Sending object of id %llu to %i\n", object->id, client_id);
+    printf("Sending object udp of id %llu to %i\n", object->id, client_id);
     ServerClient *client = AServer->GetClient(client_id);
     if (client == NULL)
     {
         return;
     }
 
-    SerializedDerived derived = AGameObject->SerializePartial(object);
+    SerializedDerived derived = AObject.SerializePartial(object);
     Message message = {client_id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_udp(&client->UDPsocket, &message);
 }
 
-static void SendObjectTCP(GameObject *object, ServerClientHandle *client_stream)
+static void SendObjectTCP(Object *object, ServerClientHandle *client_stream)
 {
     ServerClient *client = client_stream->client;
     if (client == NULL)
@@ -388,7 +388,7 @@ static void SendObjectTCP(GameObject *object, ServerClientHandle *client_stream)
 
     printf("Synchronizing object of id %llu to %i\n", object->id, client->id);
 
-    SerializedDerived derived = AGameObject->Serialize(object);
+    SerializedDerived derived = AObject.Serialize(object);
     Message message = {client->id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_tcp((uv_stream_t *)client_stream, &message);
 }

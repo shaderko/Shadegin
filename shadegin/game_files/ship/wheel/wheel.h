@@ -1,5 +1,5 @@
 /**
- * @file cannon.h
+ * @file wheel.h
  * @author https://github.com/shaderko
  * @brief
  * @version 0.1
@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef CANNON
-#define CANNON
+#ifndef WHEEL
+#define WHEEL
 
 #include <linmath.h>
 #include <stdbool.h>
@@ -18,8 +18,8 @@
 #include "../../../src/engine/object/object.h"
 #include "../../../src/engine/object/model/model.h"
 
-typedef struct Cannon Cannon;
-struct Cannon
+typedef struct Wheel Wheel;
+struct Wheel
 {
     Object *object;
 
@@ -32,24 +32,24 @@ struct Cannon
     float max_heat;
 };
 
-typedef struct ShipCannon ShipCannon;
-struct ShipCannon
+typedef struct ShipWheel ShipWheel;
+struct ShipWheel
 {
     vec3 position;
     vec3 rotation;
 
-    Cannon *cannon;
+    Wheel *wheel;
 };
 
-struct ACannon
+struct AWheel
 {
-    Cannon *(*Init)(Model *model, float max_ammo, float max_heat);
+    Wheel *(*Init)(Model *model, float max_ammo, float max_heat);
 
-    void (*Render)(Cannon *cannon);
+    void (*Render)(Wheel *wheel);
 
-    void (*Destroy)(Cannon *cannon);
+    void (*Destroy)(Wheel *wheel);
 };
 
-extern struct ACannon ACannon;
+extern struct AWheel AWheel;
 
 #endif

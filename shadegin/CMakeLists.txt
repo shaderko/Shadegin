@@ -3,11 +3,11 @@ cmake_minimum_required(VERSION 3.11)
 project(MyGame)
 
 # set the source files
-set(GAME_FILES game_files/player.c game_files/ship/ship.c game_files/walls/wall.c)
+set(GAME_FILES game_files/player.c game_files/ship/ship.c game_files/ship/wheel/wheel.c game_files/ship/cannon/cannon.c game_files/walls/wall.c)
 set(RENDER src/engine/render/render/render_init.c src/engine/render/render/render.c src/engine/render/render/render_util.c src/engine/threading/thread_pool/thread_pool.c)
 set(CAMERA src/engine/render/camera/camera.c)
 set(IO src/engine/io/io.c)
-set(OBJECT src/engine/object/collider/collider.c src/engine/object/collider/box_collider.c src/engine/object/renderer/renderer.c src/engine/object/game_object/game_object.c src/engine/object/model/model.c)
+set(OBJECT src/engine/object/collider/collider.c src/engine/object/collider/box_collider.c src/engine/object/renderer/renderer.c src/engine/object/object.c src/engine/object/model/model.c)
 set(NETWORKING src/engine/network/server/server.c src/engine/network/client/client.c src/engine/network/room/room.c src/engine/network/network/network.c)
 set(SCENE src/engine/object/map/scene.c)
 set(CONFIG src/engine/common/config/config.c)

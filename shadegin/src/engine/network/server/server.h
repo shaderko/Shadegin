@@ -13,8 +13,9 @@
 #define SERVER_H
 
 #include <uv.h>
+#include <stdbool.h>
 
-#include "../../object/game_object/game_object.h"
+#include "../../object/object.h"
 
 // definition for loop include
 typedef struct Room Room;
@@ -74,6 +75,7 @@ struct ServerClient
      * Room the client is connected to, this is only here so the server doesn't have to loop through all rooms to find the client
      */
     Room *room;
+    bool synchronized;
 };
 
 typedef struct ServerClientHandle ServerClientHandle;
@@ -161,9 +163,9 @@ struct AServer
     /**
      * Send object to client
      */
-    void (*SendObject)(GameObject *object, int client_id);
+    void (*SendObject)(Object *object, int client_id);
 
-    void (*SendObjectTCP)(GameObject *object, ServerClientHandle *client_stream);
+    void (*SendObjectTCP)(Object *object, ServerClientHandle *client_stream);
 
     /**
      * Get the Server object

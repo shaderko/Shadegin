@@ -1,14 +1,14 @@
 #pragma once
 
 #include <linmath.h>
-#include "../../src/engine/object/game_object/game_object.h"
+#include "../../src/engine/object/object.h"
 
 typedef struct Wall
 {
     vec3 position;
     vec3 size;
     vec4 color;
-    GameObject **objects;
+    Object **objects;
 } Wall;
 
 void add_wall(vec3 position, vec3 wall_size, vec4 color);

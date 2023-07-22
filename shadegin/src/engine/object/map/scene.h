@@ -14,7 +14,7 @@
 
 #include <linmath.h>
 
-#include "../game_object/game_object.h"
+#include "../object.h"
 
 typedef struct Scene Scene;
 struct Scene
@@ -27,7 +27,7 @@ struct Scene
     /**
      * Array of objects in a scene
      */
-    GameObject **objects;
+    Object **objects;
     int objects_size;
 };
 
@@ -46,7 +46,7 @@ struct AScene
     /**
      * Adds an object to a scene
      */
-    void (*Add)(Scene *scene, GameObject *object);
+    void (*Add)(Scene *scene, Object *object);
 
     /**
      * Writes scene objects to a file

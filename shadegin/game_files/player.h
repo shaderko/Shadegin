@@ -14,7 +14,7 @@
 
 #include <linmath.h>
 
-#include "../src/engine/object/game_object/game_object.h"
+#include "../src/engine/object/object.h"
 
 typedef struct Player Player;
 struct Player
@@ -27,7 +27,7 @@ struct Player
     /**
      * @brief Game object of player
      */
-    GameObject *object;
+    Object *object;
 };
 
 struct APlayer

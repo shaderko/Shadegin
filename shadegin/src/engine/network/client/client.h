@@ -16,7 +16,7 @@
 
 #include "../room/room.h"
 #include "../../common/types/types.h"
-#include "../../object/game_object/game_object.h"
+#include "../../object/object.h"
 
 typedef struct Client Client;
 struct Client
@@ -48,7 +48,7 @@ struct AClient
     void (*ReceiveDataUDP)(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned int flags);
 
     void (*JoinRoom)(Client *client, ull room_id);
-    void (*SendObject)(Client *client, GameObject *object);
+    void (*SendObject)(Client *client, Object *object);
 };
 
 extern struct AClient AClient[1];

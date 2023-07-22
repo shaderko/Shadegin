@@ -13,7 +13,7 @@
 
 #include "../../util/util.h"
 #include "box_collider.h"
-#include "../game_object/game_object.h"
+#include "../object.h"
 
 static Collider *Init(Collider *collider, vec3 size)
 {
@@ -62,7 +62,7 @@ static vec3 *Size(Collider *collider)
     return &derived_collider->size;
 }
 
-static bool Collide(GameObject *object1, GameObject *object2)
+static bool Collide(Object *object1, Object *object2)
 {
     if (object1 == object2)
     {

@@ -16,7 +16,7 @@
 #include "../network/network.h"
 #include "room.h"
 #include "../server/server.h"
-#include "../../object/game_object/game_object.h"
+#include "../../object/object.h"
 
 /**
  * @brief Creates a room with unique id and starts a thread for it
@@ -145,18 +145,21 @@ static void ProcessData(Room *room)
 
         Message *message = room->queue->data[index];
 
-        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
-        memcpy(object, message->data, sizeof(SerializedGameObject));
+        // TODO: this only works for objects, add more types, like player, etc.
+        // But I don't know if this should be in engine or in the game, because all the other types are game specific
+
+        SerializedObject *object = malloc(sizeof(SerializedObject));
+        memcpy(object, message->data, sizeof(SerializedObject));
 
         // Collider
         object->collider.derived.data = malloc(object->collider.derived.len);
-        memcpy(object->collider.derived.data, message->data + sizeof(SerializedGameObject), object->collider.derived.len);
+        memcpy(object->collider.derived.data, message->data + sizeof(SerializedObject), object->collider.derived.len);
 
         // Renderer
         object->renderer.derived.data = malloc(object->renderer.derived.len);
-        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
+        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedObject) + object->collider.derived.len, object->renderer.derived.len);
 
-        AScene->Add(room->scene, AGameObject->Deserialize(object, room->scene));
+        AScene->Add(room->scene, AObject.Deserialize(object, room->scene));
 
         free(object->collider.derived.data);
         free(object->renderer.derived.data);
@@ -186,7 +189,7 @@ static void SendData(Room *room)
 
     for (int i = 0; i < room->scene->objects_size; i++)
     {
-        GameObject *object = room->scene->objects[i];
+        Object *object = room->scene->objects[i];
         if (!object)
         {
             ERROR_EXIT("Object is NULL!\n");
@@ -197,6 +200,11 @@ static void SendData(Room *room)
             if (!client)
             {
                 ERROR_EXIT("Client is NULL!\n");
+            }
+
+            if (!client->synchronized)
+            {
+                continue;
             }
 
             AServer->SendObject(object, client->id);
@@ -301,7 +309,7 @@ static void JoinClient(Room *room, ServerClientHandle *client_stream)
     for (int i = 0; i < room->scene->objects_size; i++)
     {
         puts("Sending object");
-        GameObject *object = room->scene->objects[i];
+        Object *object = room->scene->objects[i];
         if (!object)
         {
             ERROR_EXIT("Object is NULL!\n");
@@ -314,6 +322,8 @@ static void JoinClient(Room *room, ServerClientHandle *client_stream)
 
     Message message = {client->id, SYNCHRONIZATION_COMPLETE, 0, 0, NULL};
     send_data_tcp((uv_stream_t *)client_stream, &message);
+
+    client->synchronized = true;
 
     puts("Client joined room");
 }

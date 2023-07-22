@@ -14,7 +14,7 @@
 
 #include <linmath.h>
 
-#include "../../object/game_object/game_object.h"
+#include "../../object/object.h"
 
 typedef struct Camera Camera;
 struct Camera
@@ -42,7 +42,7 @@ struct Camera
     /**
      * @brief Target of the camera
      */
-    GameObject *target;
+    Object *target;
 
     /**
      * @brief View matrix of the camera
@@ -55,7 +55,7 @@ struct ACamera
     /**
      * @brief Create camera
      */
-    Camera *(*Init)(float distance, float smoothing, vec3 position, GameObject *target);
+    Camera *(*Init)(float distance, float smoothing, vec3 position, Object *target);
 
     /**
      * @brief Get camera

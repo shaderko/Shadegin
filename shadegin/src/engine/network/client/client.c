@@ -254,18 +254,18 @@ static void ParsingDataTCP(uv_stream_t *stream, Message *message)
     {
         puts("Received object TCP");
 
-        SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
-        memcpy(object, message->data, sizeof(SerializedGameObject));
+        SerializedObject *object = malloc(sizeof(SerializedObject));
+        memcpy(object, message->data, sizeof(SerializedObject));
 
         // Collider
         object->collider.derived.data = malloc(object->collider.derived.len);
-        memcpy(object->collider.derived.data, message->data + sizeof(SerializedGameObject), object->collider.derived.len);
+        memcpy(object->collider.derived.data, message->data + sizeof(SerializedObject), object->collider.derived.len);
 
         // Renderer
         object->renderer.derived.data = malloc(object->renderer.derived.len);
-        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
+        memcpy(object->renderer.derived.data, message->data + sizeof(SerializedObject) + object->collider.derived.len, object->renderer.derived.len);
 
-        AGameObject->Deserialize(object, NULL);
+        AObject.Deserialize(object, NULL);
 
         free(object->collider.derived.data);
         free(object->renderer.derived.data);
@@ -314,18 +314,18 @@ static void ReceiveDataUDP(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf,
         return;
     }
 
-    SerializedGameObject *object = malloc(sizeof(SerializedGameObject));
-    memcpy(object, buf->base + sizeof(Message), sizeof(SerializedGameObject));
+    SerializedObject *object = malloc(sizeof(SerializedObject));
+    memcpy(object, buf->base + sizeof(Message), sizeof(SerializedObject));
 
     // // Collider
     // object->collider.derived.data = malloc(object->collider.derived.len);
-    // memcpy(object->collider.derived.data, buf->base + sizeof(Message) + sizeof(SerializedGameObject), object->collider.derived.len);
+    // memcpy(object->collider.derived.data, buf->base + sizeof(Message) + sizeof(SerializedObject), object->collider.derived.len);
 
     // // Renderer
     // object->renderer.derived.data = malloc(object->renderer.derived.len);
-    // memcpy(object->renderer.derived.data, buf->base + sizeof(Message) + sizeof(SerializedGameObject) + object->collider.derived.len, object->renderer.derived.len);
+    // memcpy(object->renderer.derived.data, buf->base + sizeof(Message) + sizeof(SerializedObject) + object->collider.derived.len, object->renderer.derived.len);
 
-    AGameObject->Deserialize(object, NULL);
+    AObject.Deserialize(object, NULL);
 
     free(message->data);
     free(message);
@@ -361,7 +361,7 @@ static void JoinRoom(Client *client, ull room_id)
     printf("Packet sent\n");
 }
 
-static void SendObject(Client *client, GameObject *object)
+static void SendObject(Client *client, Object *object)
 {
     if (!client)
     {
@@ -375,7 +375,7 @@ static void SendObject(Client *client, GameObject *object)
         return;
     }
 
-    SerializedDerived derived = AGameObject->Serialize(object);
+    SerializedDerived derived = AObject.Serialize(object);
     Message message = {client->id, DATA_RESPONSE, 0, derived.len, derived.data};
     send_data_udp(&client->UDPsend_socket, &message);
 }

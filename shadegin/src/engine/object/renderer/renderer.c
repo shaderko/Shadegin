@@ -13,14 +13,27 @@
 
 #include "../../util/util.h"
 #include "../../render/render/render.h"
-#include "../model/model.h"
 
+/**
+ * Delete the renderer
+ * @param renderer - to be deleted
+ * This function frees all the memory a renderer uses, also the model
+ * TODO: adjust to not delete the model, because in a game there will be multiple renderers with the same model, all can use the same one, so model should be freed separately
+ */
 static void Delete(Renderer *renderer)
 {
     AModel->Delete(renderer->model);
     free(renderer);
 }
 
+/**
+ * @brief Initialize a renderer
+ *
+ * @param position - local to object
+ * @param rotation  - local to object
+ * @param scale - local to object
+ * @return Renderer*
+ */
 static Renderer *Init(vec3 position, vec3 rotation, vec3 scale)
 {
     Renderer *renderer = malloc(sizeof(Renderer));
@@ -36,6 +49,12 @@ static Renderer *Init(vec3 position, vec3 rotation, vec3 scale)
     return renderer;
 }
 
+/**
+ * @brief Render the renderer, if model is NULL, then it won't render, the position is added to the position of the object
+ *
+ * @param renderer
+ * @param position
+ */
 static void Render(Renderer *renderer, vec3 position)
 {
     if (!renderer || !renderer->model)
@@ -61,7 +80,7 @@ static void Render(Renderer *renderer, vec3 position)
  */
 static Renderer *InitBox(vec3 position, vec3 rotation, vec3 scale)
 {
-    Renderer *renderer = ARenderer->Init(position, rotation, scale);
+    Renderer *renderer = Init(position, rotation, scale);
 
     renderer->model = AModel->InitBox();
 
@@ -72,7 +91,7 @@ static Renderer *InitBox(vec3 position, vec3 rotation, vec3 scale)
  * @brief Initialize a mesh renderer
  *
  * @param model - initialized model
- * @param color - color of the mesh // TODO:
+ * @param color - color of the mesh // TODO: do this on the upper function as well, and also this attribute is not being used
  * @param position - vec3 of renderer position
  * @param rotation - vec3 of renderer rotation
  * @param scale - vec3 of renderer scale
@@ -80,13 +99,19 @@ static Renderer *InitBox(vec3 position, vec3 rotation, vec3 scale)
  */
 static Renderer *InitMesh(Model *model, vec4 color, vec3 position, vec3 rotation, vec3 scale)
 {
-    Renderer *renderer = ARenderer->Init(position, rotation, scale);
+    Renderer *renderer = Init(position, rotation, scale);
 
     renderer->model = model;
 
     return renderer;
 }
 
+/**
+ * @brief Serialize the renderer for saving to file or sending over network
+ *
+ * @param renderer
+ * @return SerializedRenderer
+ */
 static SerializedRenderer Serialize(Renderer *renderer)
 {
     SerializedRenderer serialized = {0};
@@ -100,25 +125,30 @@ static SerializedRenderer Serialize(Renderer *renderer)
     return serialized;
 }
 
-static Renderer *Deserialize(SerializedRenderer serialized)
+/**
+ * @brief Deserialize the renderer from file or network
+ *
+ * @param serialized_renderer
+ * @return Renderer*
+ */
+static Renderer *Deserialize(SerializedRenderer serialized_renderer)
 {
     Renderer *renderer = malloc(sizeof(Renderer));
 
-    memcpy(renderer->position, serialized.position, sizeof(vec3));
-    memcpy(renderer->rotation, serialized.rotation, sizeof(vec3));
-    memcpy(renderer->scale, serialized.scale, sizeof(vec3));
+    memcpy(renderer->position, serialized_renderer.position, sizeof(vec3));
+    memcpy(renderer->rotation, serialized_renderer.rotation, sizeof(vec3));
+    memcpy(renderer->scale, serialized_renderer.scale, sizeof(vec3));
 
-    renderer->model = AModel->Deserialize(serialized.derived);
+    renderer->model = AModel->Deserialize(serialized_renderer.derived);
 
     return renderer;
 }
 
-struct ARenderer ARenderer[1] =
-    {{
-        Init,
-        Render,
-        InitBox,
-        InitMesh,
-        Serialize,
-        Deserialize,
-    }};
+struct ARenderer ARenderer = {
+    .Init = Init,
+    .Render = Render,
+    .InitBox = InitBox,
+    .InitMesh = InitMesh,
+    .Serialize = Serialize,
+    .Deserialize = Deserialize,
+};

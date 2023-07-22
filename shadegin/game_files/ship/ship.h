@@ -14,26 +14,34 @@
 
 #include <linmath.h>
 
-#include "../../src/engine/object/game_object/game_object.h"
+#include "../../src/engine/object/object.h"
+#include "wheel/wheel.h"
+#include "cannon/cannon.h"
 
 typedef struct Ship Ship;
 struct Ship
 {
     int id;
     int owner_id;
+
+    Object *object;
+    float speed;
+    float max_speed;
+    float acceleration;
+    float max_acceleration;
+
     int type;
     int faction;
     int level;
     int rank;
     int experience;
 
-    GameObject *object;
-    // Canon[] canons
+    ShipWheel *wheel;
+    // ShipWheel defines where the position on the ship is of the wheel, the same for ShipCannon
+    ShipCannon **canons;
+    int cannon_size;
+    int max_cannons;
 
-    vec2 position;
-    vec2 velocity;
-    vec2 acceleration;
-    float max_acceleration;
     float rotation;
 
     float mass;
@@ -57,6 +65,8 @@ struct AShip
 {
     Ship *(*Init)(Model *model);
     void (*Update)(Ship *ship);
+    void (*AddCannon)(Ship *ship, Cannon *cannon);
+    void (*AddWheel)(Ship *ship, Wheel *wheel);
     void (*Destroy)(Ship *ship);
 };
 

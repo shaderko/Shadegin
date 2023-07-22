@@ -19,7 +19,7 @@
 
 #include "../serialized/serialized.h"
 
-typedef struct GameObject GameObject;
+typedef struct Object Object;
 
 typedef enum ColliderType ColliderType;
 enum ColliderType
@@ -54,7 +54,7 @@ struct Collider
      */
     ColliderType type;
 
-    bool (*Collide)(GameObject *, GameObject *);
+    bool (*Collide)(Object *, Object *);
     void (*Delete)(Collider *);
     vec3 *(*Size)(Collider *);
     SerializedDerived (*Seralize)(Collider *);

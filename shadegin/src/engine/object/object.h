@@ -17,15 +17,15 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "../../util/util.h"
-#include "../collider/collider.h"
-#include "../renderer/renderer.h"
+#include "../util/util.h"
+#include "collider/collider.h"
+#include "renderer/renderer.h"
 
 // Defined for circular import
 typedef struct Scene Scene;
 
-typedef struct SerializedGameObject SerializedGameObject;
-struct SerializedGameObject
+typedef struct SerializedObject SerializedObject;
+struct SerializedObject
 {
     ull id;
     vec3 position;
@@ -36,8 +36,8 @@ struct SerializedGameObject
     SerializedRenderer renderer;
 };
 
-typedef struct GameObject GameObject;
-struct GameObject
+typedef struct Object Object;
+struct Object
 {
     ull id;
 
@@ -53,7 +53,7 @@ struct GameObject
 
     /**
      * Mass represents the speed at which object falls,
-     * and how much of velocity is transfered/lost on collision
+     * and how much velocity is transfered/lost on collision
      */
     float mass;
 
@@ -73,52 +73,57 @@ struct GameObject
     Renderer *renderer;
 };
 
-struct AGameObject
+struct AObject
 {
     /**
-     * Create game object
+     * Create object
      *
      * Can have different collider and renderer types
      */
-    GameObject *(*Init)();
+    Object *(*Init)();
 
-    GameObject *(*Create)(bool is_static, float mass, vec3 position);
+    Object *(*Create)(bool is_static, float mass, vec3 position);
 
     /**
-     * Create a game object box
+     * Create an object box
      */
-    GameObject *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
+    Object *(*InitBox)(bool is_static, float mass, vec3 position, vec3 size);
 
-    GameObject *(*InitMesh)(bool is_static, float mass, vec3 position, vec3 size, Model *model);
+    Object *(*InitMesh)(bool is_static, float mass, vec3 position, vec3 size, Model *model);
 
-    GameObject *(*GetGameObjectByIndex)(int index);
+    Object *(*GetObjectByIndex)(int index);
 
     /**
-     * Render game object in position of game object with the local position of renderer
+     * Render object in position of object with the local position of renderer
      */
-    void (*Render)(GameObject *object);
-    void (*RenderGameObjects)();
+    void (*Render)(Object *object);
+    void (*RenderObjects)();
 
     /**
-     * Updates the position of game object with game objects velocity
+     * Updates the position of an object with objects velocity
      */
-    void (*Update)(GameObject *object);
-    void (*UpdateGameObjects)();
+    void (*Update)(Object *object);
+    void (*UpdateObjects)();
+
+    void (*UpdatePosition)(Object *object, vec3 position);
 
     /**
-     * Serialize a game object for network transfer
+     * Serialize an object for network transfer
      */
-    SerializedDerived (*Serialize)(GameObject *object);
-    SerializedDerived (*SerializePartial)(GameObject *object);
+    SerializedDerived (*Serialize)(Object *object);
+    SerializedDerived (*SerializePartial)(Object *object);
 
     /**
-     * Deserialize network Game Object
+     * Deserialize network Object
      * Create new one if it doesn't exist
      * If it does apply all variables
      */
-    GameObject *(*Deserialize)(SerializedGameObject *object, Scene *scene);
+    Object *(*Deserialize)(SerializedObject *object, Scene *scene);
+
+    // struct ACollider *ACollider;
+    struct ARenderer *ARenderer;
 };
 
-extern struct AGameObject AGameObject[1];
+extern struct AObject AObject;
 
 #endif

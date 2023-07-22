@@ -31,7 +31,7 @@ Player *Init(vec2 position, float speed)
 
     // Assign values
     player->speed = 0;
-    player->object = AGameObject->InitBox(true, 1, (vec3){position[0], position[1], 1}, (vec3){5, 5, 5});
+    player->object = AObject.InitBox(true, 1, (vec3){position[0], position[1], 1}, (vec3){5, 5, 5});
 
     players[players_size] = player;
     players_size++;
@@ -50,8 +50,6 @@ Player *Get()
 
 void Move(Player *player, vec2 position)
 {
-    // player->object->velocity[0] = fmin(fmax(position[0] - player->object->position[0], -player->speed), player->speed);
-    // player->object->velocity[1] = fmin(fmax(position[1] - player->object->position[1], -player->speed), player->speed);
     player->object->velocity[0] = position[0];
     player->object->velocity[1] = position[1];
 
@@ -63,7 +61,7 @@ void Render()
 {
     for (int i = 0; i < players_size; i++)
     {
-        AGameObject->Render(players[i]->object);
+        AObject.Render(players[i]->object);
     }
 }
 

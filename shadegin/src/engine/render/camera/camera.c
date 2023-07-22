@@ -15,7 +15,7 @@
 
 static Camera *camera = NULL;
 
-static Camera *Init(float distance, float smoothing, vec3 position, GameObject *target)
+static Camera *Init(float distance, float smoothing, vec3 position, Object *target)
 {
     camera = malloc(sizeof(Camera));
     if (!camera)
