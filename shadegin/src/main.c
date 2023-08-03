@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
     client = AClient->Init();
 
     // Create the scene
-    Scene *scene = AScene->Init(&(vec3){0, 0, 0});
+    // Scene *scene = AScene->Init(&(vec3){0, 0, 0});
     Ship *ship = AShip->Init(AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/ship.obj"));
-    AScene->Add(scene, ship->object);
+    // AScene->Add(scene, ship->object);
     // for (int i = 0; i < 1; i++)
     // {
     //     // Object *object = AObject.InitMesh(false, 1, (vec3){0, i * 100, 0}, (vec3){20, 1, 20}, AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/ship.obj"));
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     // AScene->WriteToFile(scene, "Desktop/file2");
     // AScene->ReadFile(scene, "file2");
 
-    AShip->AddCannon(ship, ACannon.Init(AModel->InitBox(), 100, 100));
+    AShip->AddCannon(ship, ACannon.Init(AModel->Load("/Users/filiplukovic/Documents/projects/shadegin/shadegin/build/cannon.obj"), 100, 100));
 
     config_init();
     render_init();
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
         Uint32 currentTime = SDL_GetTicks();
         Uint32 elapsedTime = currentTime - startTime;
         // Regulate frame rate so the game doesn't consume computah
-        printf("Frame render time: %d\n", elapsedTime);
+        // printf("Frame render time: %d\n", elapsedTime);
         if (elapsedTime < 16)
         {
             SDL_Delay(16 - elapsedTime);

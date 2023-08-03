@@ -281,6 +281,7 @@ static SerializedDerived SerializePartial(Object *object)
         {object->velocity[0], object->velocity[1], object->velocity[2]},
         object->mass,
         object->is_static,
+        object->should_render,
         {{0, 0, 0}, 0, {0, NULL}},
         {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, NULL}}};
 

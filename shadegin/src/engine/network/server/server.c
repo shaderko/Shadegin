@@ -42,7 +42,7 @@ static void Init()
     int error;
 
     // Address to receive data on (localhost)
-    error = uv_ip6_addr("::1", 1234, &server->address);
+    error = uv_ip4_addr("0.0.0.0", 8000, &server->address);
     if (error < 0)
         ERROR_EXIT("Error resolving server host: %s\n", uv_strerror(error));
 
@@ -71,9 +71,9 @@ static void Init()
     puts("TCP socket initialized!");
 
     // Print Server address and port
-    char address_str[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6, &server->address.sin6_addr, address_str, sizeof(address_str));
-    printf("Bound to IPv6 address: %s, port: %hu\n", address_str, ntohs(server->address.sin6_port));
+    char address_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &server->address.sin_addr, address_str, sizeof(address_str));
+    printf("Bound to IPv6 address: %s, port: %hu\n", address_str, ntohs(server->address.sin_port));
     //
 
     puts("Server initialized! Receving data.");
@@ -184,7 +184,7 @@ static void DeleteClient(int client_id)
 
 static SerializedDerived SerializeMessage(Message *message)
 {
-    void *message_data = malloc(message->length + sizeof(Message));
+    char *message_data = malloc(message->length + sizeof(Message));
     if (!message_data)
         ERROR_EXIT("Couldn't allocate memory for message data!\n");
 
@@ -234,11 +234,19 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         memcpy(&client->address, message->data, message->length);
 
         // Print client's address and port
-        struct sockaddr_in6 *addr_in = (struct sockaddr_in6 *)&client->address;
-        char address_str[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6, &addr_in->sin6_addr, address_str, sizeof(address_str));
+        struct sockaddr_in *addr_in = (struct sockaddr_in *)&client->address;
+        char address_str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &addr_in->sin_addr, address_str, sizeof(address_str));
 
-        printf("Client's IPv6 address: %s, port: %hu\n", address_str, ntohs(addr_in->sin6_port));
+        // Get ip from tcp connection
+        struct sockaddr_storage peername;
+        int namelen = sizeof(peername);
+        uv_tcp_getpeername((uv_tcp_t *)client_stream, (struct sockaddr *)&peername, &namelen);
+        struct sockaddr_in *addr = (struct sockaddr_in *)&peername;
+        char ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
+        uv_ip4_name(addr, ip, INET_ADDRSTRLEN);
+        printf("Client's IPv6 address: %s, port: %hu\n", ip, ntohs(addr_in->sin_port));
         //
 
         int error;
@@ -282,7 +290,7 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         ARoom->JoinClient(room, client_stream);
 
         // Respond with the room id
-        Message response = {client->id, CREATE_ROOM_RESPONSE, 0, sizeof(ull), &room->room_id};
+        Message response = {client->id, CREATE_ROOM_RESPONSE, 0, sizeof(ull), (char *)&room->room_id};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }
@@ -311,7 +319,7 @@ static void ReceiveDataTCP(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
         ARoom->JoinClient(room, client_stream);
 
         // Respond with the room id
-        Message response = {client->id, JOIN_ROOM_RESPONSE, 0, sizeof(ull), &room->room_id};
+        Message response = {client->id, JOIN_ROOM_RESPONSE, 0, sizeof(ull), (char *)&room->room_id};
         send_data_tcp((uv_stream_t *)client_stream, &response);
         break;
     }

@@ -22,16 +22,19 @@ static Ship *Init(Model *model)
     ship->object = AObject.InitMesh(true, false, 10, (vec3){0, 0, 0}, (vec3){10, 10, 10}, model);
 
     // wheel
-    ship->wheel = malloc(sizeof(ShipWheel));
+    ship->wheel = calloc(1, sizeof(ShipWheel));
     memcpy(ship->wheel->position, (vec3){0, 0, 0}, sizeof(vec3));
 
     // cannons
-    ship->canons = malloc(sizeof(ShipWheel *) * ship->cannon_size);
-    for (int i = 0; i < ship->max_cannons; i++)
-    {
-        ship->canons[i] = malloc(sizeof(ShipCannon));
-        memcpy(ship->canons[i]->position, (vec3){100, 0, 0}, sizeof(vec3));
-    }
+    ship->canons = NULL;
+    ship->cannon_size = 0;
+    ship->max_cannons = 4;
+    // ship->canons = malloc(sizeof(ShipWheel *) * ship->cannon_size);
+    // for (int i = 0; i < ship->max_cannons; i++)
+    // {
+    //     ship->canons[i] = malloc(sizeof(ShipCannon));
+    //     memcpy(ship->canons[i]->position, (vec3){100, 0, 0}, sizeof(vec3));
+    // }
 
     ships = realloc(ships, sizeof(Ship *) * (ship_count + 1));
     ships[ship_count] = ship;
@@ -50,7 +53,7 @@ static void Render(Ship *ship)
     AObject.Render(ship->object);
 
     // render cannons
-    for (int i = 0; i < ship->max_cannons; i++)
+    for (int i = 0; i < ship->cannon_size; i++)
     {
         if (ship->canons[i]->cannon)
         {
@@ -68,7 +71,7 @@ static void Render(Ship *ship)
 
 static void RenderShips()
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < ship_count; i++)
     {
         Render(ships[i]);
     }
@@ -81,11 +84,13 @@ static void AddWheel(Ship *ship, Wheel *wheel)
 
 static void AddCannon(Ship *ship, Cannon *cannon)
 {
-    if (ship->cannon_size >= ship->max_cannons)
-    {
-        printf("Couldn't add a cannon because all the cannons are already occupied");
-        return;
-    }
+    ship->canons = realloc(ship->canons, sizeof(ShipCannon *) * (ship->cannon_size + 1));
+    ship->canons[ship->cannon_size] = malloc(sizeof(ShipCannon));
+
+    memcpy(ship->canons[ship->cannon_size]->position, (vec3){100, 0, 0}, sizeof(vec3));
+
+    if (!ship->canons)
+        ERROR_EXIT("Failed to allocate memory for cannons");
 
     ship->canons[ship->cannon_size]->cannon = cannon;
     ship->cannon_size++;

@@ -32,8 +32,8 @@ static Client *Init()
     int error;
 
     // Server destination address
-    struct sockaddr_in6 dest;
-    error = uv_ip6_addr("::1", 1234, &dest);
+    struct sockaddr_in dest;
+    error = uv_ip4_addr("192.168.0.242", 8000, &dest);
     if (error < 0)
     {
         free(client);
@@ -41,9 +41,9 @@ static Client *Init()
     }
 
     // Client address
-    struct sockaddr_in6 addr_to_bind;
+    struct sockaddr_in addr_to_bind;
     int bound_addr_len = sizeof(addr_to_bind);
-    error = uv_ip6_addr("::1", 0, (struct sockaddr_in6 *)&addr_to_bind);
+    error = uv_ip4_addr("0.0.0.0", 0, (struct sockaddr_in *)&addr_to_bind);
     if (error < 0)
     {
         free(client);
@@ -119,13 +119,13 @@ static void connect_client(uv_connect_t *req, int status)
         ERROR_EXIT("Could't start listening for messages on TCP socket: %s\n", uv_strerror(error));
 
     // Get client's address and port
-    struct sockaddr_in6 *addr_in = (struct sockaddr_in6 *)&client->address;
-    char address_str[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6, &addr_in->sin6_addr, address_str, sizeof(address_str));
+    struct sockaddr_in *addr_in = (struct sockaddr_in *)&client->address;
+    char address_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &addr_in->sin_addr, address_str, sizeof(address_str));
 
-    printf("Sending address: %s and port: %hu to server\n", address_str, ntohs(addr_in->sin6_port));
+    printf("Sending address: %s and port: %hu to server\n", address_str, ntohs(addr_in->sin_port));
 
-    Message message = {client->id, CONNECTION_REQUEST, 0, sizeof(client->address), &client->address};
+    Message message = {client->id, CONNECTION_REQUEST, 0, sizeof(client->address), (char *)&client->address};
     send_data_tcp((uv_stream_t *)&client->TCPsocket, &message);
 }
 

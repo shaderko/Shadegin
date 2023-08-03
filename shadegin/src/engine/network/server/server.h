@@ -55,7 +55,7 @@ struct Message
      * data
      */
     int length;
-    void *data;
+    char *data;
 };
 
 typedef struct ServerClient ServerClient;
@@ -89,7 +89,7 @@ typedef struct Server Server;
 struct Server
 {
     uv_loop_t *loop;
-    struct sockaddr_in6 address;
+    struct sockaddr_in address;
 
     /**
      * Socket to send and receive game data

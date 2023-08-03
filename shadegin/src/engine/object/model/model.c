@@ -95,18 +95,20 @@ static Model *Load(const char *path)
     }
 
     Model *model = malloc(sizeof(Model));
-
-    model->is_valid = false;
-    model->verticies_count = 0;
-    model->indicies_count = 0;
-    model->uv_count = 0;
-
     if (!model)
     {
         printf("Failed to allocate memory for model\n");
         fclose(file);
         return NULL;
     }
+
+    model->verticies = NULL;
+    model->verticies_count = 0;
+    model->indicies = NULL;
+    model->indicies_count = 0;
+    model->uvs = NULL;
+    model->uv_count = 0;
+    model->is_valid = false;
 
     char lineHeader[128];
     while (fscanf(file, "%s", lineHeader) != EOF)
@@ -115,8 +117,14 @@ static Model *Load(const char *path)
         {
             // Vertices
             model->verticies = realloc(model->verticies, sizeof(vec3) * (model->verticies_count + 1));
+            if (!model->verticies)
+            {
+                printf("Failed to allocate memory for verticies\n");
+                fclose(file);
+                return NULL;
+            }
+
             fscanf(file, "%f %f %f", &model->verticies[model->verticies_count][0], &model->verticies[model->verticies_count][1], &model->verticies[model->verticies_count][2]);
-            // printf("Vertex: %f %f %f\n", model->verticies[model->verticies_count][0], model->verticies[model->verticies_count][1], model->verticies[model->verticies_count][2]);
             model->verticies_count++;
         }
         else if (strcmp(lineHeader, "vt") == 0)
@@ -136,12 +144,18 @@ static Model *Load(const char *path)
             //                      &vertexIndex[1], &uvIndex[1],
             //                      &vertexIndex[2], &uvIndex[2]);
 
-            int matches = fscanf(file, "%d %d %dn",
+            int matches = fscanf(file, "%d/%*d/%*d %d/%*d/%*d %d/%*d/%*dn",
                                  &vertexIndex[0],
                                  &vertexIndex[1],
                                  &vertexIndex[2]);
 
             model->indicies = realloc(model->indicies, sizeof(unsigned int) * (model->indicies_count + 3));
+            if (!model->indicies)
+            {
+                printf("Failed to allocate memory for indicies\n");
+                fclose(file);
+                return NULL;
+            }
             for (int i = 0; i < 3; i++)
             {
                 model->indicies[model->indicies_count + i] = vertexIndex[i] - 1; // Indices are 1-based in .obj
@@ -154,18 +168,6 @@ static Model *Load(const char *path)
                 fclose(file);
                 return NULL;
             }
-
-            // printf("Face: %d %d %d\n", vertexIndex[0], vertexIndex[1], vertexIndex[2]);
-
-            // // Assign vertices and uvs based on the face indices
-            // model->uvs = realloc(model->uvs, sizeof(vec3) * (model->uv_count + 3));
-
-            // for (int i = 0; i < 3; i++)
-            // {
-            //     memcpy(&model->uvs[model->uv_count + i], &temp_uvs[uvIndex[i] - 1], sizeof(vec3)); // Indices are 1-based in .obj
-            // }
-
-            // model->uv_count += 3;
         }
     }
 

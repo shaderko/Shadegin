@@ -35,6 +35,7 @@ static Room *Init(Server *server)
     }
     room->server = server;
     room->loop = uv_default_loop(); // TODO: unused
+    room->scene = NULL;
 
     room->is_active = true;
     room->clients = NULL;

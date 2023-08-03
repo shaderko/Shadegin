@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_net.h>
 
 #include "../../util/util.h"
 #include "../../common/global/global.h"

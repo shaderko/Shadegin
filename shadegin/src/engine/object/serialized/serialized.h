@@ -16,7 +16,7 @@ typedef struct SerializedDerived SerializedDerived;
 struct SerializedDerived
 {
     int len;
-    void *data;
+    char *data;
 };
 
 #endif

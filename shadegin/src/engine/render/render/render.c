@@ -195,8 +195,6 @@ void render_mesh(Model *model, vec3 position, vec3 scale)
         {0, 0, 1, 0},
         {0, 0, 0, 1}};
 
-    printf("position: %f, %f, %f\n", position[0], position[1], position[2]);
-
     mat4x4_translate(model_matrix, position[0], position[1], position[2]);
     mat4x4_scale_aniso(model_matrix, model_matrix, scale[0] / 2, scale[1] / 2, scale[2] / 2);
 
